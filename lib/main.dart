@@ -69,7 +69,7 @@ void _importExcel() async {
             if (splitCoordinates.length >= 2) {
               longitude = splitCoordinates[0];
               latitude = splitCoordinates[1];
-              data.add([name, longitude, latitude]);
+              data.add([name, latitude, longitude]);
             } 
           }
           //lookAtElement
