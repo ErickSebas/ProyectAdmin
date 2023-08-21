@@ -5,6 +5,10 @@ import 'dart:io';
 import 'package:xml/xml.dart';
 import 'dart:convert';
 
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+
 
 
 void main() => runApp(const MyApp());
@@ -93,11 +97,36 @@ void _importExcel() async {
       }
 
       //post Backend
-
+      sendListToAPI(data);
 
     }
 
     setState(() {});
+  }
+}
+
+//Mysql
+Future sendListToAPI(List<List<String>> myList) async {
+  final String url = 'http://localhost:your_port/georegister';
+  final http.Client client = http.Client();
+
+  try {
+    final http.Response response = await client.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'data': myList, }),
+    );
+    if (response.statusCode == 200) {
+      print('Data sent successfully!');
+    } else {
+      print('Error sending data: ${response.body}');
+    }
+  } catch (e) {
+    print('Exception occurred: $e');
+  } finally {
+    client.close();
   }
 }
 
