@@ -55,7 +55,7 @@ void _importExcel() async {
         var placemarks = xmlDocument.findAllElements('Placemark');
         
         for (var placemark in placemarks) {
-          print(placemark.childElements.last);
+          //print(placemark.childElements.last);
           var lookAtElement = placemark.childElements.last.findElements('coordinates');
 
           var nameElement = placemark.findElements('name');
@@ -76,11 +76,15 @@ void _importExcel() async {
               data.add([name, latitude, longitude]);
             } 
           }
+          
           //lookAtElement
 
           //print([name, long, lat]);
           
         }
+        sendListToAPI(data);
+        data.clear();
+        print("//datos"+data.toString());
 
       } else {
         var excel = Excel.decodeBytes(fileBytes);
@@ -94,10 +98,12 @@ void _importExcel() async {
             //print(rowData);
           }
         }
+        sendListToAPI(data);
+        
       }
 
       //post Backend
-      sendListToAPI(data);
+      
 
     }
 
@@ -107,7 +113,7 @@ void _importExcel() async {
 
 //Mysql
 Future sendListToAPI(List<List<String>> myList) async {
-  final String url = 'http://localhost:your_port/georegister';
+  final String url = 'http://10.0.2.2:3000/data/add';
   final http.Client client = http.Client();
 
   try {
