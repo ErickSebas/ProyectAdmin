@@ -34,7 +34,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<List<String>> data = [];
+  List<Object> data = [];
 
 void _importExcel() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -71,7 +71,7 @@ void _importExcel() async {
             if (splitCoordinates.length >= 2) {
               longitude = splitCoordinates[0];
               latitude = splitCoordinates[1];
-              data.add([name, latitude, longitude]);
+              data.add({"name": name, "latitude":latitude, "longitude":longitude});
             } 
           }
           
@@ -110,7 +110,7 @@ void _importExcel() async {
 }
 
 //Mysql
-Future sendListToAPI(List<List<String>> myList) async {
+Future sendListToAPI(List<Object> myList) async {
   final String url = 'http://10.0.2.2:3000/data/add';
   final http.Client client = http.Client();
 
@@ -148,11 +148,7 @@ Future sendListToAPI(List<List<String>> myList) async {
           Expanded(
             child: ListView.builder(
               itemCount: data.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(data[index].join(', ')), 
-                );
-              },
+              itemBuilder: (context, index) {},
             ),
           ),
         ],
