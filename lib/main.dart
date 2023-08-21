@@ -1,3 +1,4 @@
+import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
@@ -5,11 +6,21 @@ import 'dart:io';
 import 'package:xml/xml.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:admin/Models/Ubicacion.dart';
 
 
 
 
-void main() => runApp(const MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -34,7 +45,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Object> data = [];
+  List<Ubicacion> data = [];
 
 void _importExcel() async {
   FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -71,7 +82,7 @@ void _importExcel() async {
             if (splitCoordinates.length >= 2) {
               longitude = splitCoordinates[0];
               latitude = splitCoordinates[1];
-              data.add({"name": name, "latitude":latitude, "longitude":longitude});
+              data.add(Ubicacion(name: name, latitude: latitude, longitude: longitude));
             } 
           }
           
@@ -80,9 +91,11 @@ void _importExcel() async {
           //print([name, long, lat]);
           
         }
-        sendListToAPI(data);
+        //sendListToAPI(data);
+        dataToFirebase(data);
+        print(data.length);
         data.clear();
-        print("//datos"+data.toString());
+        
 
       } else {
         var excel = Excel.decodeBytes(fileBytes);
@@ -92,12 +105,12 @@ void _importExcel() async {
             for (var cell in row) {
               rowData.add(cell?.value.toString() ?? "");
             }
-            data.add(rowData);
+            //data.add(rowData);
             //print(rowData);
           }
         }
-        sendListToAPI(data);
-        
+        //sendListToAPI(data);
+        dataToFirebase(data);
       }
 
       //post Backend
@@ -133,6 +146,7 @@ Future sendListToAPI(List<Object> myList) async {
     client.close();
   }
 }
+
 
 
   @override
