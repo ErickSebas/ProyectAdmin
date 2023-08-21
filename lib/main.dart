@@ -87,10 +87,14 @@ void _importExcel() async {
               rowData.add(cell?.value.toString() ?? "");
             }
             data.add(rowData);
-            print(rowData);
+            //print(rowData);
           }
         }
       }
+
+      //post Backend
+
+
     }
 
     setState(() {});
@@ -101,9 +105,7 @@ void _importExcel() async {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0.0, toolbarHeight: 10,),
       body: Column(
         children: [
           ElevatedButton(
