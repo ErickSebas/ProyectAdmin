@@ -8,4 +8,10 @@ class Ubicacion {
     required this.latitude,
     required this.longitude,
   });
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'latitude': latitude,
+        'longitude': longitude,
+      };
 }

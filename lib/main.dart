@@ -10,10 +10,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:admin/Models/Ubicacion.dart';
 
-
-
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -47,112 +43,115 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Ubicacion> data = [];
 
-void _importExcel() async {
-  FilePickerResult? result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['xlsx', 'xls', 'kml'],
-  );
+  void _importExcel() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx', 'xls', 'kml'],
+    );
 
-  if (result != null) {
-    var path = result.files.single.path;
+    if (result != null) {
+      var path = result.files.single.path;
 
-    if (path != null && File(path).existsSync()) {
-      var fileBytes = File(path).readAsBytesSync();
+      if (path != null && File(path).existsSync()) {
+        var fileBytes = File(path).readAsBytesSync();
 
-      if (path.endsWith('.kml')) {
-        var xmlDocument = XmlDocument.parse(const Utf8Decoder().convert(fileBytes));
-        var placemarks = xmlDocument.findAllElements('Placemark');
-        
-        for (var placemark in placemarks) {
-          //print(placemark.childElements.last);
-          var lookAtElement = placemark.childElements.last.findElements('coordinates');
+        if (path.endsWith('.kml')) {
+          var xmlDocument =
+              XmlDocument.parse(const Utf8Decoder().convert(fileBytes));
+          var placemarks = xmlDocument.findAllElements('Placemark');
 
-          var nameElement = placemark.findElements('name');
-          String name = nameElement.isNotEmpty ? nameElement.first.text : '';
-          
-          String longitude;
-          String latitude;
-          for (var coordinatesElement in lookAtElement) {
-            // Obtiene el contenido de texto de la etiqueta <coordinates>
-            String coordinatesText = coordinatesElement.text;
+          for (var placemark in placemarks) {
+            //print(placemark.childElements.last);
+            var lookAtElement =
+                placemark.childElements.last.findElements('coordinates');
 
-            // Divide el texto por las comas
-            List<String> splitCoordinates = coordinatesText.split(',');
+            var nameElement = placemark.findElements('name');
+            String name = nameElement.isNotEmpty ? nameElement.first.text : '';
 
-            if (splitCoordinates.length >= 2) {
-              longitude = splitCoordinates[0];
-              latitude = splitCoordinates[1];
-              data.add(Ubicacion(name: name, latitude: latitude, longitude: longitude));
-            } 
-          }
-          
-          //lookAtElement
+            String longitude;
+            String latitude;
+            for (var coordinatesElement in lookAtElement) {
+              // Obtiene el contenido de texto de la etiqueta <coordinates>
+              String coordinatesText = coordinatesElement.text;
 
-          //print([name, long, lat]);
-          
-        }
-        //sendListToAPI(data);
-        dataToFirebase(data);
-        print(data.length);
-        data.clear();
-        
+              // Divide el texto por las comas
+              List<String> splitCoordinates = coordinatesText.split(',');
 
-      } else {
-        var excel = Excel.decodeBytes(fileBytes);
-        for (var table in excel.tables.values) {
-          for (var row in table.rows) {
-            List<String> rowData = [];
-            for (var cell in row) {
-              rowData.add(cell?.value.toString() ?? "");
+              if (splitCoordinates.length >= 2) {
+                longitude = splitCoordinates[0];
+                latitude = splitCoordinates[1];
+                data.add(Ubicacion(
+                    name: name, latitude: latitude, longitude: longitude));
+              }
             }
-            //data.add(rowData);
-            //print(rowData);
+
+            //lookAtElement
+
+            //print([name, long, lat]);
           }
+          //sendListToAPI(data);
+          //dataToFirebase(data);
+          subirArchivoAFirebase(data);
+          //print(data.length);
+          data.clear();
+        } else {
+          var excel = Excel.decodeBytes(fileBytes);
+          for (var table in excel.tables.values) {
+            for (var row in table.rows) {
+              List<String> rowData = [];
+              for (var cell in row) {
+                rowData.add(cell?.value.toString() ?? "");
+              }
+              //data.add(rowData);
+              //print(rowData);
+            }
+          }
+          //sendListToAPI(data);
+          dataToFirebase(data);
         }
-        //sendListToAPI(data);
-        dataToFirebase(data);
+
+        //post Backend
       }
 
-      //post Backend
-      
-
+      setState(() {});
     }
-
-    setState(() {});
   }
-}
 
 //Mysql
-Future sendListToAPI(List<Object> myList) async {
-  final String url = 'http://10.0.2.2:3000/data/add';
-  final http.Client client = http.Client();
+  Future sendListToAPI(List<Object> myList) async {
+    final String url = 'http://10.0.2.2:3000/data/add';
+    final http.Client client = http.Client();
 
-  try {
-    final http.Response response = await client.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({'data': myList, }),
-    );
-    if (response.statusCode == 200) {
-      print('Data sent successfully!');
-    } else {
-      print('Error sending data: ${response.body}');
+    try {
+      final http.Response response = await client.post(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'data': myList,
+        }),
+      );
+      if (response.statusCode == 200) {
+        print('Data sent successfully!');
+      } else {
+        print('Error sending data: ${response.body}');
+      }
+    } catch (e) {
+      print('Exception occurred: $e');
+    } finally {
+      client.close();
     }
-  } catch (e) {
-    print('Exception occurred: $e');
-  } finally {
-    client.close();
   }
-}
-
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0.0, toolbarHeight: 10,),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0.0,
+        toolbarHeight: 10,
+      ),
       body: Column(
         children: [
           ElevatedButton(
