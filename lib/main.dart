@@ -8,7 +8,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:admin/Models/Ubicacion.dart';
+import 'package:admin/Models/Ubication.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,12 +41,13 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Ubicacion> data = [];
+  List<Ubication> data = [];
 
-  void _importExcel() async {
+  // Método para importar archivos a la App
+  void _importFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['xlsx', 'xls', 'kml'],
+      allowedExtensions: ['kml'],
     );
 
     if (result != null) {
@@ -61,7 +62,6 @@ class _HomeScreenState extends State<HomeScreen> {
           var placemarks = xmlDocument.findAllElements('Placemark');
 
           for (var placemark in placemarks) {
-            //print(placemark.childElements.last);
             var lookAtElement =
                 placemark.childElements.last.findElements('coordinates');
 
@@ -80,67 +80,16 @@ class _HomeScreenState extends State<HomeScreen> {
               if (splitCoordinates.length >= 2) {
                 longitude = splitCoordinates[0];
                 latitude = splitCoordinates[1];
-                data.add(Ubicacion(
+                data.add(Ubication(
                     name: name, latitude: latitude, longitude: longitude));
               }
             }
-
-            //lookAtElement
-
-            //print([name, long, lat]);
           }
-          //sendListToAPI(data);
-          //dataToFirebase(data);
-          subirArchivoAFirebase(data);
-          //print(data.length);
+          upJsonToFirebase(data);
           data.clear();
-        } else {
-          var excel = Excel.decodeBytes(fileBytes);
-          for (var table in excel.tables.values) {
-            for (var row in table.rows) {
-              List<String> rowData = [];
-              for (var cell in row) {
-                rowData.add(cell?.value.toString() ?? "");
-              }
-              //data.add(rowData);
-              //print(rowData);
-            }
-          }
-          //sendListToAPI(data);
-          dataToFirebase(data);
-        }
-
-        //post Backend
+        } 
       }
-
       setState(() {});
-    }
-  }
-
-//Mysql
-  Future sendListToAPI(List<Object> myList) async {
-    final String url = 'http://10.0.2.2:3000/data/add';
-    final http.Client client = http.Client();
-
-    try {
-      final http.Response response = await client.post(
-        Uri.parse(url),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'data': myList,
-        }),
-      );
-      if (response.statusCode == 200) {
-        print('Data sent successfully!');
-      } else {
-        print('Error sending data: ${response.body}');
-      }
-    } catch (e) {
-      print('Exception occurred: $e');
-    } finally {
-      client.close();
     }
   }
 
@@ -155,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           ElevatedButton(
-            onPressed: _importExcel,
+            onPressed: _importFile,
             child: const Text('Importar Excel'),
           ),
           Expanded(

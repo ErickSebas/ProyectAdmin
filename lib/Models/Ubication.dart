@@ -1,9 +1,9 @@
-class Ubicacion {
+class Ubication {
   final String name;
   final String latitude;
   final String longitude;
 
-  Ubicacion({
+  Ubication({
     required this.name,
     required this.latitude,
     required this.longitude,
