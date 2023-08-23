@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 FirebaseStorage storage = FirebaseStorage.instance;
+double? progress = 0.0;
 
 // Método guardar Archivo JSON
 Future<File> _saveJsonInStorage(String jsonData) async {
@@ -16,12 +17,22 @@ Future<File> _saveJsonInStorage(String jsonData) async {
 }
 
 // Método subir arhivo JSON en Firebase Storage
-Future<void> upJsonToFirebase(List<Ubication> mylist) async {
-  String jsonUbication = jsonEncode(mylist.map((p) => p.toJson()).toList());
-  File file = await _saveJsonInStorage(jsonUbication);
-  Reference ref = storage.ref().child('ubications.json');
-  UploadTask uploadTask = ref.putFile(file);
-  TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => {});
-  var url = await taskSnapshot.ref.getDownloadURL();
-  print("URL del archivo: $url");
+Future<void> upJsonToFirebase(List<Ubication> mylist, Function(double) onProgress) async {
+    String jsonUbication = jsonEncode(mylist.map((p) => p.toJson()).toList());
+    File file = await _saveJsonInStorage(jsonUbication);
+    Reference ref = storage.ref().child('ubications.json');
+    UploadTask uploadTask = ref.putFile(file);
+
+    // Escucha los cambios en el progreso de la tarea
+    uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+        double currentProgress = snapshot.bytesTransferred / snapshot.totalBytes;
+        onProgress(currentProgress);
+    });
+    TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => {});
+    await uploadTask.whenComplete(() => {});
+    var url = await taskSnapshot.ref.getDownloadURL();
+    print("URL del archivo: $url");
 }
+
+
+
