@@ -1,3 +1,14 @@
+/// <summary>
+/// Nombre de la aplicación: AdminMaYpiVaC
+/// Nombre del desarrollador: Equipo-Sedes-Univalle
+/// Fecha de creación: 18/08/2023
+/// </summary>
+/// 
+// <copyright file="services_firebase.dart" company="Sedes-Univalle">
+// Esta clase está restringida para su uso, sin la previa autorización de Sedes-Univalle.
+// </copyright>
+
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:admin/Models/Ubication.dart';
@@ -7,18 +18,17 @@ import 'package:path_provider/path_provider.dart';
 
 FirebaseFirestore db = FirebaseFirestore.instance;
 FirebaseStorage storage = FirebaseStorage.instance;
-double? progress = 0.0;
+double? proceso = 0.0;
 
 // Método guardar Archivo JSON
 Future<File> _saveJsonInStorage(String jsonData) async {
-  final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/ubications.json');
+  final directorio = await getApplicationDocumentsDirectory();
+  final file = File('${directorio.path}/ubications.json');
   return file.writeAsString(jsonData);
 }
 
-// Método subir arhivo JSON en Firebase Storage
-Future<void> upJsonToFirebase(List<Ubication> mylist, Function(double) onProgress) async {
-    String jsonUbication = jsonEncode(mylist.map((p) => p.toJson()).toList());
+Future<void> Subir_Json_Firebase(List<EUbication> Ubicaciones, Function(double) enProceso) async {
+    String jsonUbication = jsonEncode(Ubicaciones.map((p) => p.toJson()).toList());
     File file = await _saveJsonInStorage(jsonUbication);
     Reference ref = storage.ref().child('ubications.json');
     UploadTask uploadTask = ref.putFile(file);
@@ -26,7 +36,7 @@ Future<void> upJsonToFirebase(List<Ubication> mylist, Function(double) onProgres
     // Escucha los cambios en el progreso de la tarea
     uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
         double currentProgress = snapshot.bytesTransferred / snapshot.totalBytes;
-        onProgress(currentProgress);
+        enProceso(currentProgress);
     });
     TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => {});
     await uploadTask.whenComplete(() => {});

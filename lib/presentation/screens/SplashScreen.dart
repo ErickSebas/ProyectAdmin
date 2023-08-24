@@ -1,3 +1,13 @@
+/// <summary>
+/// Nombre de la aplicación: AdminMaYpiVaC
+/// Nombre del desarrollador: Equipo-Sedes-Univalle
+/// Fecha de creación: 18/08/2023
+/// </summary>
+/// 
+// <copyright file="SplashScreen.dart" company="Sedes-Univalle">
+// Esta clase está restringida para su uso, sin la previa autorización de Sedes-Univalle.
+// </copyright>
+
 import 'HomeClient.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,10 +23,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToMainScreen(); // Navega a la pantalla principal después de un tiempo determinado
+    Navegar_Pantalla_Main();
   }
 
-  Future<void> _navigateToMainScreen() async {
+  Future<void> Navegar_Pantalla_Main() async {
     await Future.delayed(const Duration(seconds: 2)); // Espera 2 segundos
     // ignore: use_build_context_synchronously
     Navigator.pushReplacement(

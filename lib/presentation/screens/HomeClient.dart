@@ -1,3 +1,14 @@
+/// <summary>
+/// Nombre de la aplicación: AdminMaYpiVaC
+/// Nombre del desarrollador: Equipo-Sedes-Univalle
+/// Fecha de creación: 18/08/2023
+/// </summary>
+/// 
+// <copyright file="HomeClient.dart" company="Sedes-Univalle">
+// Esta clase está restringida para su uso, sin la previa autorización de Sedes-Univalle.
+// </copyright>
+
+
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -15,11 +26,10 @@ class HomeClient extends StatefulWidget {
 }
 
 class _HomeClientState extends State<HomeClient> {
-  List<Ubication> data = [];
-  bool isLoading = false;
+  List<EUbication> Ubicaciones = [];
+  bool estaCargando = false;
 
-  // Método para importar archivos a la App
-  void _importFile() async {
+  void Importar_Archivo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['kml'],
@@ -27,10 +37,8 @@ class _HomeClientState extends State<HomeClient> {
 
     if (result != null) {
       var path = result.files.single.path;
-
       if (path != null && File(path).existsSync()) {
         var fileBytes = File(path).readAsBytesSync();
-
         if (path.endsWith('.kml')) {
           var xmlDocument =
               XmlDocument.parse(const Utf8Decoder().convert(fileBytes));
@@ -42,7 +50,6 @@ class _HomeClientState extends State<HomeClient> {
 
             var nameElement = placemark.findElements('name');
             String name = nameElement.isNotEmpty ? nameElement.first.text : '';
-
             String longitude;
             String latitude;
             for (var coordinatesElement in lookAtElement) {
@@ -55,22 +62,22 @@ class _HomeClientState extends State<HomeClient> {
               if (splitCoordinates.length >= 2) {
                 longitude = splitCoordinates[0];
                 latitude = splitCoordinates[1];
-                data.add(Ubication(
+                Ubicaciones.add(EUbication(
                     name: name, latitude: latitude, longitude: longitude));
               }
             }
           }
           setState(() {
-            isLoading = true;
+            estaCargando = true;
           });
-          await upJsonToFirebase(data, (double progressValue) {
+          await Subir_Json_Firebase(Ubicaciones, (double valorProceso) {
               setState(() {
-                  progress = progressValue;
+                  proceso = valorProceso;
               });
           });
-          data.clear();
+          Ubicaciones.clear();
           setState(() {
-              isLoading = false;
+              estaCargando = false;
           });
 
           // Mostrar toast notificando que se ha finalizado
@@ -121,7 +128,7 @@ class _HomeClientState extends State<HomeClient> {
                 ),
               ),
               ElevatedButton(
-                onPressed: isLoading ? null : _importFile,
+                onPressed: estaCargando ? null : Importar_Archivo,
                 child: const Text('Importar KML'),
                 style: ElevatedButton.styleFrom(
                   
@@ -131,14 +138,14 @@ class _HomeClientState extends State<HomeClient> {
               ),
               Expanded(
                 child: ListView.builder(
-                  itemCount: data.length,
+                  itemCount: Ubicaciones.length,
                   itemBuilder: (context, index) {
                   },
                 ),
               ),
             ],
           ),
-          if (isLoading)
+          if (estaCargando)
            Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),  // Agrega padding a los costados
@@ -148,13 +155,13 @@ class _HomeClientState extends State<HomeClient> {
                   SizedBox(
                     height: 20.0, // Ajusta este valor según el grosor deseado para la barra
                     child: LinearProgressIndicator(
-                      value: progress,
+                      value: proceso,
                       backgroundColor: Colors.grey[200],
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                     ),
                   ),
                   SizedBox(height: 10),
-                  Text('${(progress! * 100).toStringAsFixed(1)}%'),
+                  Text('${(proceso! * 100).toStringAsFixed(1)}%'),
                 ],
               ),
             ),
