@@ -3,12 +3,13 @@
 /// Nombre del desarrollador: Equipo-Sedes-Univalle
 /// Fecha de creación: 18/08/2023
 /// </summary>
-/// 
+///
 // <copyright file="SplashScreen.dart" company="Sedes-Univalle">
 // Esta clase está restringida para su uso, sin la previa autorización de Sedes-Univalle.
 // </copyright>
 
-import 'HomeClient.dart';
+import 'package:admin/presentation/screens/Login.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -31,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // ignore: use_build_context_synchronously
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => HomeClient()),
+      MaterialPageRoute(builder: (context) => MyApp()),
     );
   }
 
@@ -54,15 +55,15 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: 500,
-              width: 500,
-              child: Column(
-                children: [
-                  Image.asset("assets/icon.png",height: 150 ,width: 150),
-                  SizedBox(height:10),
-                ],
-              )),
-            //FlutterLogo(size: 150), 
+                height: 500,
+                width: 500,
+                child: Column(
+                  children: [
+                    Image.asset("assets/icon.png", height: 150, width: 150),
+                    SizedBox(height: 10),
+                  ],
+                )),
+            //FlutterLogo(size: 150),
             const SizedBox(height: 50),
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF86ABF9)),
