@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'HomeClient.dart';
+import 'Campaign.dart';
 
 void main() => runApp(MyApp());
 
@@ -23,7 +25,7 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Image.asset("assets/icon.png", height: 130, width: 130),
+              Image.asset("assets/LogoNew.png", height: 130, width: 130),
               TextField(
                 decoration: InputDecoration(labelText: 'Correo electronico'),
               ),
@@ -37,7 +39,8 @@ class LoginPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => HomeClient()),
+                    MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
+                    child: CampaignPage())),
                   );
                 },
                 child: Text('Iniciar session'),
