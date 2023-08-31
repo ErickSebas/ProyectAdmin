@@ -247,7 +247,6 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           estaCargando = false;
                       });
 
-                      // Mostrar toast notificando que se ha finalizado
                       Fluttertoast.showToast(
                           msg: "Finalizado",
                           toastLength: Toast.LENGTH_SHORT,

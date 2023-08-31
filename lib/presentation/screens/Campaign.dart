@@ -234,6 +234,17 @@ class CampaignPage extends StatelessWidget {
           );
         },
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => RegisterCampaignPage()),
+          );
+        },
+        child: Icon(Icons.add),
+        backgroundColor: Colors.white,
+        foregroundColor: Color(0xFF4C6596),
+      ),
     );
   }
 }
