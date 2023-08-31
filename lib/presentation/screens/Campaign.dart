@@ -1,3 +1,8 @@
+import 'package:admin/presentation/screens/Accounts.dart';
+import 'package:admin/presentation/screens/MyProfile.dart';
+import 'package:admin/presentation/screens/RegisterBoss.dart';
+import 'package:admin/presentation/screens/RegisterCampaign.dart';
+import 'package:admin/presentation/screens/RegisterCardholders.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -20,12 +25,10 @@ class MyApp extends StatelessWidget {
 }
 
 class CampaignProvider extends ChangeNotifier {
-  List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]; // Ejemplo de campañas
+  List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]; 
   List<String> get campaigns => _campaigns;
 
   void searchCampaign(String query) {
-    // Aquí puedes implementar la lógica para filtrar las campañas
-    // Por ahora solo mostraré las campañas que contienen la query
     _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]
         .where((campaign) => campaign.contains(query))
         .toList();
@@ -84,79 +87,113 @@ class CampaignPage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Color(0xFF4D6596),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start, 
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircleAvatar(
-                    backgroundImage: AssetImage('assets/perritoProfile.png'), 
-                    radius: 30,  
-                  ),
-                  SizedBox(height: 10),  
-                  Column(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center, 
+                    crossAxisAlignment: CrossAxisAlignment.center, 
                     children: [
-                      Text(
-                        'Nombre de Usuario',  
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      CircleAvatar(
+                        backgroundImage: AssetImage('assets/perritoProfile.png'), 
+                        radius: 30,  
                       ),
-                      SizedBox(height: 5),  // Espaciado entre el nombre de usuario y el correo electrónico
-                      Text(
-                        'email@example.com',  
-                        style: TextStyle(
-                          color: Colors.white70,  // Color más claro para el correo electrónico
-                          fontSize: 14,
-                        ),
+                      SizedBox(height: 10),  
+                      Column(
+                        children: [
+                          Text(
+                            'Galaxixs1803',  
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 5), 
+                          Text(
+                            'galaxixsum@@example.com',  
+                            style: TextStyle(
+                              color: Colors.white70,  
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
                       ),
+                      
                     ],
                   ),
-                  
                 ],
-              ),
+              ) 
             ),
             ListTile(
               leading: Icon(Icons.campaign),
               title: Text('Registrar Campaña'),
               onTap: () {
-
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterCampaignPage()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.person_add_alt),
               title: Text('Registrar Jefe de Brigada'),
               onTap: () {
-
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterBossPage()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.person_add),
               title: Text('Registrar Carnetizadores'),
               onTap: () {
-
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterCardholdersPage()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.message),
               title: Text('Mensaje'),
               onTap: () {
-
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => RegisterCampaignPage()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.account_circle),
               title: Text('Perfil'),
               onTap: () {
-
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyProfilePage()),
+                );
               },
             ),
             ListTile(
               leading: Icon(Icons.account_tree),
               title: Text('Cuentas'),
               onTap: () {
-
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccountPage()),
+                );
               },
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: ListTile(
+                leading: Icon(Icons.logout),
+                title: Text('Cerrar Sesión'),
+                onTap: () {
+                  // 
+                },
+              ),
             ),
           ],
         ),
@@ -173,7 +210,7 @@ class CampaignPage extends StatelessWidget {
                     return Card(
                       elevation: 4.0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),  // Establece el borde circular aquí
+                        borderRadius: BorderRadius.circular(15.0),  
                       ),
                       margin: const EdgeInsets.all(10.0),
                       child: ListTile(
@@ -186,7 +223,7 @@ class CampaignPage extends StatelessWidget {
                           style: TextStyle(color: Color(0xFF4D6596)), 
                         ),
                         onTap: () {
-                          // Acción al hacer clic en la campaña
+                          //Mostrar_Campania(campania);
                         },
                       ),
                     );
