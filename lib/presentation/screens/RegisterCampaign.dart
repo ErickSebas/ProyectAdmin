@@ -1,11 +1,11 @@
+import 'package:admin/Models/CampaignModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'HomeClient.dart';
-import 'Campaign.dart';
+import 'package:admin/presentation/screens/Campaign.dart';
 
 import 'package:admin/services/services_firebase.dart';
-import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:io';
@@ -15,6 +15,10 @@ import 'package:admin/Models/Ubication.dart';
 
 
 class RegisterCampaignPage extends StatefulWidget {
+  final Campaign initialData;
+
+  RegisterCampaignPage({Key? key, required this.initialData}) : super(key: key);
+
   @override
   _RegisterCampaignPageState createState() => _RegisterCampaignPageState();
 }
@@ -27,9 +31,24 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
   String kml = '';
   List<EUbication> Ubicaciones = [];
   bool estaCargando = false;
+  bool actualizar = false;
   String? errorMessage;
 
+  void initState(){
+    super.initState();
+    if(widget.initialData.nombre!=""){
+      Cargar_Datos();
+      
+    }
+  }
 
+  void Cargar_Datos(){
+    actualizar = true;
+    nombre = widget.initialData.nombre;
+    descripcion = widget.initialData.descripcion;
+    categoria = widget.initialData.categoria;
+  }
+  
    void Importar_Archivo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
@@ -77,56 +96,6 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
     }
   }
 
-  void _showErrorDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Error'),
-        content: Text(errorMessage ?? 'Ha ocurrido un error desconocido.'),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Aceptar', style: TextStyle(color: Colors.red)),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-  void _showSuccessDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 50),
-            SizedBox(height: 10),
-            Text('Registro completado con éxito.'),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('Hecho', style: TextStyle(color: Colors.black),),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
-                child: CampaignPage())),
-              );
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
 
 
   @override
@@ -135,7 +104,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
       backgroundColor: Color(0xFF4D6596),
       appBar: AppBar(
         backgroundColor: Color(0xFF4D6596),
-        title: Text('Registrar Campaña', style: TextStyle(color: Colors.white)),
+        title: Text(actualizar ? 'Actualizar Campaña' : 'Registrar Campaña', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: Builder(
             builder: (context) => IconButton(
@@ -156,7 +125,11 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
           key: _formKey,
           child: ListView(
             children: [
+              Center(
+                child: Image.asset('assets/LogoNew.png', height: 100, width: 100,),  // Ajusta la ruta y las dimensiones según lo necesites
+              ),
               TextFormField(
+                initialValue: nombre,
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Nombre',
@@ -176,6 +149,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               ),
               SizedBox(height: 15),
               TextFormField(
+                initialValue: descripcion,
                 style: TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   labelText: 'Descripción',
@@ -197,7 +171,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               DropdownButton<String>(
                 hint: Text('Selecciona una categoría', style: TextStyle(color: Colors.white)),
                 value: categoria,
-                dropdownColor: Colors.grey[850], // Puedes ajustar este color según prefieras.
+                dropdownColor: Colors.grey[850], 
                 style: TextStyle(color: Colors.white),
                 items: <String>['Categoría 1', 'Categoría 2', 'Categoría 3']
                 .map((String value) {
@@ -256,15 +230,12 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           textColor: Colors.white,
                           fontSize: 16.0
                       );
-                        _showSuccessDialog(context);
+                        Mostrar_Finalizado(context);
                       } else {
-                        setState(() {
-                          errorMessage = 'Ingrese todos los campos';  // Actualiza esto con tu mensaje de error específico
-                        });
-                        _showErrorDialog(context);
+                        Mostrar_Error(context, "Ingrese todos los campos");
                       }
                     },
-                    child: Text('Registrar'),
+                    child: Text(actualizar ? 'Actualizar' : 'Registrar'),
 
                     style: ElevatedButton.styleFrom(
                       primary: Color(0x1A2946),

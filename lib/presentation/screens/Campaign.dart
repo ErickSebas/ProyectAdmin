@@ -1,10 +1,14 @@
 import 'package:admin/presentation/screens/Accounts.dart';
-import 'package:admin/presentation/screens/MyProfile.dart';
+import 'package:admin/presentation/screens/List_members.dart';
+import 'package:admin/presentation/screens/Login.dart';
+import 'package:admin/presentation/screens/ProfilePage.dart';
 import 'package:admin/presentation/screens/RegisterBoss.dart';
 import 'package:admin/presentation/screens/RegisterCampaign.dart';
 import 'package:admin/presentation/screens/RegisterCardholders.dart';
+import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:admin/Models/CampaignModel.dart';
 
 void main() => runApp(MyApp());
 
@@ -24,13 +28,18 @@ class MyApp extends StatelessWidget {
   }
 }
 
+
+
+
 class CampaignProvider extends ChangeNotifier {
-  List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]; 
-  List<String> get campaigns => _campaigns;
+  //List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]; 
+  CampaignManager manager = CampaignManager();
+  List<Campaign> campaigns = CampaignManager().campaigns;
+  
 
   void searchCampaign(String query) {
-    _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]
-        .where((campaign) => campaign.contains(query))
+    campaigns = campaigns
+        .where((campaign) => campaign.nombre.toLowerCase().contains(query.toLowerCase()))
         .toList();
     notifyListeners();
   }
@@ -102,7 +111,7 @@ class CampaignPage extends StatelessWidget {
                       Column(
                         children: [
                           Text(
-                            'Galaxixs1803',  
+                            miembroActual!.name,  
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,
@@ -111,7 +120,7 @@ class CampaignPage extends StatelessWidget {
                           ),
                           SizedBox(height: 5), 
                           Text(
-                            'galaxixsum@@example.com',  
+                            miembroActual!.correo,  
                             style: TextStyle(
                               color: Colors.white70,  
                               fontSize: 14,
@@ -131,27 +140,17 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterCampaignPage()),
+                  MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: Campaign(id: 0, nombre: "", descripcion: "", categoria: ""),)),
                 );
               },
             ),
             ListTile(
               leading: Icon(Icons.person_add_alt),
-              title: Text('Registrar Jefe de Brigada'),
+              title: Text('Registrar Usuario'),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => RegisterBossPage()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.person_add),
-              title: Text('Registrar Carnetizadores'),
-              onTap: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterCardholdersPage()),
                 );
               },
             ),
@@ -161,7 +160,7 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterCampaignPage()),
+                  MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: Campaign(id: 0, nombre: "", descripcion: "", categoria: ""),)),
                 );
               },
             ),
@@ -171,7 +170,7 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => MyProfilePage()),
+                  MaterialPageRoute(builder: (context) => ProfilePage(member: miembroActual)),
                 );
               },
             ),
@@ -181,7 +180,7 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => AccountPage()),
+                  MaterialPageRoute(builder: (context) => ListMembersScreen()),
                 );
               },
             ),
@@ -191,7 +190,10 @@ class CampaignPage extends StatelessWidget {
                 leading: Icon(Icons.logout),
                 title: Text('Cerrar Sesión'),
                 onTap: () {
-                  // 
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
                 },
               ),
             ),
@@ -215,15 +217,18 @@ class CampaignPage extends StatelessWidget {
                       margin: const EdgeInsets.all(10.0),
                       child: ListTile(
                         title: Text(
-                          provider.campaigns[index],
+                          provider.campaigns[index].nombre,
                           style: TextStyle(color: Color(0xFF4D6596), fontWeight: FontWeight.bold), 
                         ),
                         subtitle: Text(
-                          "provider.campaigns[index].description",
+                          provider.campaigns[index].descripcion,
                           style: TextStyle(color: Color(0xFF4D6596)), 
                         ),
                         onTap: () {
-                          //Mostrar_Campania(campania);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: provider.campaigns[index],)),
+                          );
                         },
                       ),
                     );
@@ -238,7 +243,7 @@ class CampaignPage extends StatelessWidget {
         onPressed: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => RegisterCampaignPage()),
+            MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: Campaign(id: 0, nombre: "", descripcion: "", categoria: ""),)),
           );
         },
         child: Icon(Icons.add),

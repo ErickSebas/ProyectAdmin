@@ -11,14 +11,25 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:admin/Models/Profile.dart';
 import 'package:admin/Models/Ubication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path_provider/path_provider.dart';
 
+
+import 'package:flutter/material.dart';
+
+import 'package:provider/provider.dart';
+
+import 'package:admin/presentation/screens/Campaign.dart';
+
+
+
 FirebaseFirestore db = FirebaseFirestore.instance;
 FirebaseStorage storage = FirebaseStorage.instance;
 double? proceso = 0.0;
+Member? miembroActual;
 
 // Método guardar Archivo JSON
 Future<File> _saveJsonInStorage(String jsonData) async {
@@ -42,6 +53,57 @@ Future<void> Subir_Json_Firebase(List<EUbication> Ubicaciones, Function(double) 
     await uploadTask.whenComplete(() => {});
     var url = await taskSnapshot.ref.getDownloadURL();
     print("URL del archivo: $url");
+}
+
+  void Mostrar_Error(BuildContext context, String errorMessage) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Error'),
+        content: Text(errorMessage),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Aceptar', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+  void Mostrar_Finalizado(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 50),
+            SizedBox(height: 10),
+            Text('Registro completado con éxito.'),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Hecho', style: TextStyle(color: Colors.black),),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
+                child: CampaignPage())),
+              );
+            },
+          ),
+        ],
+      );
+    },
+  );
 }
 
 
