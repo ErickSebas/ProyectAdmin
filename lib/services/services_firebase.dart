@@ -76,7 +76,7 @@ Future<void> Subir_Json_Firebase(List<EUbication> Ubicaciones, Function(double) 
 }
 
 
-  void Mostrar_Finalizado(BuildContext context) {
+  void Mostrar_Finalizado(BuildContext context, String texto) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -86,7 +86,7 @@ Future<void> Subir_Json_Firebase(List<EUbication> Ubicaciones, Function(double) 
           children: [
             Icon(Icons.check_circle, color: Colors.green, size: 50),
             SizedBox(height: 10),
-            Text('Registro completado con éxito.'),
+            Text(texto),
           ],
         ),
         actions: <Widget>[

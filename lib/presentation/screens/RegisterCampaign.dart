@@ -33,6 +33,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
   bool estaCargando = false;
   bool actualizar = false;
   String? errorMessage;
+  var id;
 
   void initState(){
     super.initState();
@@ -42,7 +43,16 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
     }
   }
 
+  void updateCampaignById(int id, Campaign updatedCampaign) {
+  int index =campaigns.indexWhere((campaign) => campaign.id == id);
+  if (index != -1) {  
+    campaigns[index] = updatedCampaign;
+  }
+}
+
+
   void Cargar_Datos(){
+    id = widget.initialData.id;
     actualizar = true;
     nombre = widget.initialData.nombre;
     descripcion = widget.initialData.descripcion;
@@ -207,7 +217,12 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                     if (_formKey.currentState!.validate()&&categoria!=null&&kml!='') {
+                      if(actualizar&&_formKey.currentState!.validate()){
+                        Campaign updatedCampaign = Campaign(id: id, nombre: nombre, descripcion: descripcion, categoria: categoria!);
+                        updateCampaignById(id, updatedCampaign);
+                        Mostrar_Finalizado(context, "Se ha actualizado con éxito");
+                      }else if (_formKey.currentState!.validate()&&categoria!=null&&kml!='') {
+                        //Registrar
                       setState(() {
                         estaCargando = true;
                       });
@@ -230,7 +245,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           textColor: Colors.white,
                           fontSize: 16.0
                       );
-                        Mostrar_Finalizado(context);
+                        Mostrar_Finalizado(context, "Se ha registrado con éxito");
                       } else {
                         Mostrar_Error(context, "Ingrese todos los campos");
                       }

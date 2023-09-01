@@ -1,3 +1,20 @@
+class MemberManager{
+
+
+    
+}
+
+bool addMember(Member member) {
+    // Puedes agregar una verificación para asegurarte de que no hay dos campañas con el mismo ID
+    if (!members.any((existingCampaign) => existingCampaign.id == member.id)) {
+      members.add(member);
+      return true;
+    } else {
+      print("Una member con este ID ya existe.");
+      return false;
+    }
+  }
+
 class Member {
 
   final String name;
@@ -44,11 +61,7 @@ class Member {
 
 }
 
- 
-
-// Lista de miembros (puedes mantenerla aquí o cargarla desde una fuente de datos externa)
-
-final List<Member> members = [
+  final List<Member> members = [
 
   Member(
 
@@ -78,7 +91,7 @@ final List<Member> members = [
 
       datebirthday: DateTime.now(),
 
-      id: 6,
+      id: 2,
 
       role: "Administrador",
 
@@ -100,7 +113,7 @@ final List<Member> members = [
 
       datebirthday: DateTime.now(),
 
-      id: 2,
+      id: 3,
 
       role: "User",
 
@@ -122,7 +135,7 @@ final List<Member> members = [
 
       datebirthday: DateTime.now(),
 
-      id: 3,
+      id: 4,
 
       role: "Jefes",
 
@@ -144,7 +157,7 @@ final List<Member> members = [
 
       datebirthday: DateTime.now(),
 
-      id: 4,
+      id: 5,
 
       role: "Carnetizador",
 
@@ -166,7 +179,7 @@ final List<Member> members = [
 
       datebirthday: DateTime.now(),
 
-      id: 5,
+      id: 6,
 
       role: "Clientes",
 
@@ -186,4 +199,8 @@ final List<Member> members = [
 
 ];
 
+
  
+
+// Lista de miembros (puedes mantenerla aquí o cargarla desde una fuente de datos externa)
+

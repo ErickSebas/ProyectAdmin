@@ -1,3 +1,4 @@
+import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/Accounts.dart';
 import 'package:admin/presentation/screens/List_members.dart';
 import 'package:admin/presentation/screens/Login.dart';
@@ -34,11 +35,11 @@ class MyApp extends StatelessWidget {
 class CampaignProvider extends ChangeNotifier {
   //List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]; 
   CampaignManager manager = CampaignManager();
-  List<Campaign> campaigns = CampaignManager().campaigns;
+  List<Campaign> campaigns1 = campaigns;
   
 
   void searchCampaign(String query) {
-    campaigns = campaigns
+    campaigns1 = campaigns
         .where((campaign) => campaign.nombre.toLowerCase().contains(query.toLowerCase()))
         .toList();
     notifyListeners();
@@ -150,7 +151,7 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterBossPage()),
+                  MaterialPageRoute(builder: (context) => RegisterBossPage(initialData: Member(name: "", datebirthday: DateTime.now(), id: 0, role: "", contrasena: "", correo: "", telefono: 0, carnet: "", latitud: 0, longitud: 0))),
                 );
               },
             ),
@@ -190,6 +191,7 @@ class CampaignPage extends StatelessWidget {
                 leading: Icon(Icons.logout),
                 title: Text('Cerrar Sesión'),
                 onTap: () {
+                  miembroActual = null;
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => LoginPage()),
@@ -207,7 +209,7 @@ class CampaignPage extends StatelessWidget {
               searchField,
               Expanded(
                 child: ListView.builder(
-                  itemCount: provider.campaigns.length,
+                  itemCount: provider.campaigns1.length,
                   itemBuilder: (context, index) {
                     return Card(
                       elevation: 4.0,
@@ -217,17 +219,17 @@ class CampaignPage extends StatelessWidget {
                       margin: const EdgeInsets.all(10.0),
                       child: ListTile(
                         title: Text(
-                          provider.campaigns[index].nombre,
+                          provider.campaigns1[index].nombre,
                           style: TextStyle(color: Color(0xFF4D6596), fontWeight: FontWeight.bold), 
                         ),
                         subtitle: Text(
-                          provider.campaigns[index].descripcion,
+                          provider.campaigns1[index].descripcion,
                           style: TextStyle(color: Color(0xFF4D6596)), 
                         ),
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: provider.campaigns[index],)),
+                            MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: provider.campaigns1[index],)),
                           );
                         },
                       ),
