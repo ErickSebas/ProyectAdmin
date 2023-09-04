@@ -44,11 +44,17 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
   }
 
   void updateCampaignById(int id, Campaign updatedCampaign) {
-  int index =campaigns.indexWhere((campaign) => campaign.id == id);
-  if (index != -1) {  
-    campaigns[index] = updatedCampaign;
+    int index =campaigns.indexWhere((campaign) => campaign.id == id);
+    if (index != -1) {  
+      campaigns[index] = updatedCampaign;
+    }
   }
-}
+
+  void registerNewCampaign(Campaign newCampaign) {
+    // Aquí simplemente añades la nueva campaña a la lista.
+    campaigns.add(newCampaign);
+  }
+    
 
 
   void Cargar_Datos(){
@@ -74,7 +80,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
           var xmlDocument =
               XmlDocument.parse(const Utf8Decoder().convert(fileBytes));
           var placemarks = xmlDocument.findAllElements('Placemark');
-
+          print(placemarks);
           for (var placemark in placemarks) {
             var lookAtElement =
                 placemark.childElements.last.findElements('coordinates');
@@ -202,7 +208,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 onPressed: estaCargando ? null : Importar_Archivo,
                 child: const Text('Importar KML'),
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0x1A2946), 
+                  primary: Color(0xFF1A2946), 
                 ),
               ),
                Row(
@@ -221,8 +227,25 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                         Campaign updatedCampaign = Campaign(id: id, nombre: nombre, descripcion: descripcion, categoria: categoria!);
                         updateCampaignById(id, updatedCampaign);
                         Mostrar_Finalizado(context, "Se ha actualizado con éxito");
+                        if(kml!=''){
+                          //Actualizar Ubicaciones
+                          setState(() {
+                            estaCargando = true;
+                          });
+                          await Subir_Json_Firebase(Ubicaciones, (double valorProceso) {
+                              setState(() {
+                                  proceso = valorProceso;
+                              });
+                          });
+                          Ubicaciones.clear();
+                          setState(() {
+                              estaCargando = false;
+                          });
+                        }
                       }else if (_formKey.currentState!.validate()&&categoria!=null&&kml!='') {
                         //Registrar
+                      Campaign newCampaign = Campaign(id: campaigns.last.id+1, nombre: nombre, descripcion: descripcion, categoria: categoria!);
+                      registerNewCampaign(newCampaign);
                       setState(() {
                         estaCargando = true;
                       });
@@ -253,7 +276,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     child: Text(actualizar ? 'Actualizar' : 'Registrar'),
 
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0x1A2946),
+                      primary: Color(0xFF1A2946),
                     ),
                   ),
                   ElevatedButton(

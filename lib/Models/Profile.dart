@@ -4,38 +4,28 @@ class MemberManager{
     
 }
 
-bool addMember(Member member) {
-    // Puedes agregar una verificación para asegurarte de que no hay dos campañas con el mismo ID
-    if (!members.any((existingCampaign) => existingCampaign.id == member.id)) {
-      members.add(member);
-      return true;
-    } else {
-      print("Una member con este ID ya existe.");
-      return false;
-    }
-  }
 
 class Member {
 
-  final String name;
+  late String name;
 
-  final DateTime datebirthday;
+  late DateTime datebirthday;
 
-  final int id;
+  late int id;
 
-  final String role;
+  late String role;
 
-  final String contrasena; // Nuevo atributo
+  late String contrasena; // Nuevo atributo
 
-  final String correo;
+  late String correo;
 
-  final int telefono;
+  late int telefono;
 
-  final String carnet;
+  late String carnet;
 
-  final double longitud;
+  late double longitud;
 
-  final double latitud; // Nuevo atributo
+  late double latitud; // Nuevo atributo
 
   Member(
 
@@ -115,7 +105,7 @@ class Member {
 
       id: 3,
 
-      role: "User",
+      role: "Carnetizador",
 
       contrasena: "12345",
 
@@ -137,7 +127,7 @@ class Member {
 
       id: 4,
 
-      role: "Jefes",
+      role: "Carnetizador",
 
       contrasena: "12345",
 
@@ -181,7 +171,7 @@ class Member {
 
       id: 6,
 
-      role: "Clientes",
+      role: "Carnetizador",
 
       contrasena: "12345",
 
@@ -195,7 +185,28 @@ class Member {
 
       longitud: 2),
 
-  // Agrega más miembros aquí
+    Member(
+
+      name: "Galaxixs",
+
+      datebirthday: DateTime.now(),
+
+      id: 7,
+
+      role: "Administrador",
+
+      contrasena: "1717",
+
+      correo: "galaxixsum@gmail.com",
+
+      telefono: 6432541,
+
+      carnet: "f42f42fes",
+
+      latitud: 1,
+
+      longitud: 2),
+
 
 ];
 

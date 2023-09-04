@@ -106,5 +106,32 @@ Future<void> Subir_Json_Firebase(List<EUbication> Ubicaciones, Function(double) 
   );
 }
 
+  Future<void> Mostrar_Mensaje(BuildContext context, String texto)async {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 50),
+            SizedBox(height: 10),
+            Text(texto),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('Hecho', style: TextStyle(color: Colors.black),),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
 
 

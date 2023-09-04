@@ -1,11 +1,37 @@
+import 'package:admin/presentation/screens/ChangePassword.dart';
+import 'package:admin/presentation/screens/RegisterBoss.dart';
+import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
 import 'package:admin/presentation/screens/List_members.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:mailto/mailto.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server.dart';
 
 class ProfilePage extends StatelessWidget {
   final Member? member;
+
+  sendEmail() async {
+    final smtpServer = gmail('bdcbba96@gmail.com', 'ehbh ugsw srnj jxsf');
+
+    final message = Message()
+      ..from = Address('bdcbba96@gmail.com', 'Admin')
+      ..recipients.add(member!.correo)
+      ..subject = 'Cambiar Contraseña MaYpiVaC'
+      ..text = 'codigo';
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      print('Message sent: ' + sendReport.toString());
+    } catch (e) {
+      print('Message not sent.');
+      print(e.toString());
+    }
+  }
 
   ProfilePage({required this.member});
 
@@ -86,12 +112,29 @@ class ProfilePage extends StatelessWidget {
                     _buildInfoItem("Teléfono: ${member!.telefono}"),
                     _buildInfoItem(
                         "Fecha de Nacimiento: ${member!.datebirthday}"),
-                    _buildInfoItem("Longitud: ${member!.longitud}"),
-                    _buildInfoItem("Latitud: ${member!.latitud}"),
+                    _buildMap(member!.latitud, member!.longitud),
                     SizedBox(height: 20), // Espacio entre los datos y el botón
-                    ElevatedButton(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
                       onPressed: () {
-                        // Agrega aquí la lógica para editar el perfil
+                        Navigator.pushReplacement(
+                       context,
+                        MaterialPageRoute(
+                        builder: (context) => RegisterBossPage(
+                            initialData: Member(
+                                name: member!.name,
+                                datebirthday: member!.datebirthday,
+                                id: member!.id,
+                                role: member!.role,
+                                contrasena: "",
+                                correo: member!.correo,
+                                telefono: member!.telefono,
+                                carnet: member!.carnet,
+                                latitud: member!.latitud,
+                                longitud: member!.longitud))),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         primary: Color.fromARGB(255, 255, 255,
@@ -109,11 +152,46 @@ class ProfilePage extends StatelessWidget {
                         style: TextStyle(
                           color: Color(
                               0xFF4D6596), // Cambia el color del texto del botón
-                          fontSize: 18,
+                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                    ),SizedBox(width: 20),
+                    ElevatedButton(
+                      onPressed: () async {
+                      await sendEmail();
+                      await Mostrar_Mensaje(context, "Se ha enviado un código a tu correo electrónico.");
+                       Navigator.pushReplacement(
+                       context,
+                        MaterialPageRoute(
+                        builder: (context) => ChangePasswordPage(
+                           )),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Color.fromARGB(255, 255, 255,
+                            255), 
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 15), 
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                              30.0), 
+                        ),
+                      ),
+                      child: Text(
+                        "Cambiar Contraseña",
+                        style: TextStyle(
+                          color: Color(
+                              0xFF4D6596), 
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                      ],
+                    )
+                    
                   ],
                 ),
               ),
@@ -149,3 +227,22 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
+
+ Widget _buildMap(double lat, double lng) {
+    return Container(
+      height: 150, // Altura del cuadro del mapa
+      width: double.infinity, // Ocupa todo el ancho disponible
+      child: GoogleMap(
+        initialCameraPosition: CameraPosition(
+          target: LatLng(lat, lng),
+          zoom: 15,
+        ),
+        markers: {
+          Marker(
+            markerId: MarkerId('memberLocation'),
+            position: LatLng(lat, lng),
+          ),
+        },
+      ),
+    );
+  }

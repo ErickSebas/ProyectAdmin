@@ -35,6 +35,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
   String kml = '';
   bool estaCargando = false;
   String? errorMessage;
+  DateTime? datebirthday = DateTime.now();
   var telefono='';
   bool actualizar=false;
   var id =0;
@@ -43,12 +44,31 @@ class _RegisterBossPage extends State<RegisterBossPage> {
     Map<String, String> roles = {
     '1': 'Jefe de brigada',
     '2': 'Carnetizador',
+    '3': 'Administrador',
   };
 
   void initState(){
     super.initState();
     if(widget.initialData.name!=""){
       Cargar_Datos();
+    }
+  }
+
+  void registerNewMember(Member newMember) {
+    members.add(newMember);
+  }
+
+  void updateMemberById(int id, Member updatedMember) {
+    int index =members.indexWhere((member) => member.id == id);
+    if (index != -1) {  
+      members[index].name = updatedMember.name;
+      members[index].datebirthday = updatedMember.datebirthday;
+      members[index].role = updatedMember.role;
+      members[index].correo = updatedMember.correo;
+      members[index].telefono = updatedMember.telefono;
+      members[index].carnet = updatedMember.carnet;
+      members[index].latitud = updatedMember.latitud;
+      members[index].longitud = updatedMember.longitud;
     }
   }
 
@@ -59,7 +79,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
     nombre = widget.initialData.name;
     descripcion = widget.initialData.carnet;
     categoria = widget.initialData.contrasena;
-    rol = widget.initialData.role;
+    selectedRole = widget.initialData.role;
     email = widget.initialData.correo;
     latitude = widget.initialData.latitud.toString();
     telefono = widget.initialData.telefono.toString();
@@ -77,13 +97,6 @@ class _RegisterBossPage extends State<RegisterBossPage> {
         }
     }
   }
-
-    void updateUserById(int id, Member updatedUser) {
-      int index = members.indexWhere((campaign) => campaign.id == id);
-      if (index != -1) {  
-        members[index] = updatedUser;
-      }
-    }
 
   @override
   Widget build(BuildContext context) {
@@ -116,49 +129,52 @@ class _RegisterBossPage extends State<RegisterBossPage> {
             child: Image.asset('assets/LogoNew.png', height: 100, width: 100,),  
           ),
           _buildTextField(
+            initialValue: nombre,
             label: 'Nombre',
             onChanged: (value) => nombre = value,
             validator: (value) => value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
           ),
-          _buildTextField(
-            label: 'Edad',
-            onChanged: (value) => edad = value,
-            validator: (value) => value!.isEmpty ? 'La edad no puede estar vacía.' : null,
-            keyboardType: TextInputType.number,
+          SizedBox(height: 10),
+          Text("Fecha Nacimiento:", style: TextStyle(color: Colors.white)),
+          _buildDateOfBirthField(
+            initialDate: datebirthday,
+            label: 'Fecha Nacimiento',
+            onChanged: (value) => datebirthday = value,
           ),
           _buildTextField(
+            initialValue: carnet,
             label: 'Carnet',
             onChanged: (value) => carnet = value,
             validator: (value) => value!.isEmpty ? 'El carnet no puede estar vacío.' : null,
           ),
           _buildTextField(
+            initialValue: telefono,
             label: 'Teléfono',
             onChanged: (value) => telefono = value,
             validator: (value) => value!.isEmpty ? 'El Teléfono no puede estar vacía.' : null,
             keyboardType: TextInputType.number,
           ),
-          DropdownButtonFormField<String>(
-            dropdownColor: Color(0xFF4D6596),
+          DropdownButton<String>(
+            hint: Text('Rol', style: TextStyle(color: Colors.white)),
             value: selectedRole,
-            decoration: InputDecoration(
-              labelText: 'Rol',
-              labelStyle: TextStyle(color: Colors.white), 
-            ),
-            items: roles.entries.map((entry) {
-              return DropdownMenuItem<String>(
-                value: entry.key,
-                child: Text(entry.value, style: TextStyle(color: Colors.white),),
-              );
+            dropdownColor: Colors.grey[850], 
+            style: TextStyle(color: Colors.white),
+            items: <String>['Jefe de brigada', 'Carnetizador', 'Administrador']
+            .map((String value) {
+                return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                );
             }).toList(),
-            onChanged: (String? newValue) {
+            onChanged: (newValue) {
               setState(() {
                 selectedRole = newValue;
               });
             },
-            validator: (value) => value == null ? 'El rol es obligatorio.' : null,
+            
           ),
-
-
+          SizedBox(height: 10),
+          Text("Dirección:", style: TextStyle(color: Colors.white)),
           ElevatedButton(
             child: Text("Selecciona una ubicación"),
             onPressed: () async {
@@ -178,7 +194,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              primary: Color(0x1A2946),
+              primary: Color(0xFF1A2946),
             ),
           ),
           Align(
@@ -188,15 +204,17 @@ class _RegisterBossPage extends State<RegisterBossPage> {
           ),
 
           _buildTextField(
+            initialValue: email,
             label: 'Email',
             onChanged: (value) => email = value,
             validator: (value) => value!.isEmpty ? 'El email no puede estar vacío.' : null,
             keyboardType: TextInputType.emailAddress,
-          ),
+          ), actualizar?Container():
           _buildTextField(
+            initialValue: password,
             label: 'Contraseña',
             onChanged: (value) => password = value,
-            validator: (value) => value!.isEmpty ? 'La contraseña no puede estar vacía.' : null,
+            //validator: (value) => value!.isEmpty ? 'La contraseña no puede estar vacía.' : null,
             obscureText: true,
           ),
           
@@ -206,13 +224,15 @@ class _RegisterBossPage extends State<RegisterBossPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      if(actualizar&&_formKey.currentState!.validate()){
-                        Member updatedMember = Member(name: nombre, datebirthday: DateTime.now(), id: id, role: roles[selectedRole]!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude));
-                        updateUserById(id, updatedMember);
+                      if(actualizar&&_formKey.currentState!.validate()&&latitude!=""&&selectedRole!=""&&datebirthday!=""){
+                        Member newMember = Member(name: nombre, datebirthday: datebirthday!, id: id, role: selectedRole!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude));
+                        updateMemberById(id, newMember);
+                        if(miembroActual!.id==id){
+                          miembroActual = newMember;
+                        }
                         Mostrar_Finalizado(context, "Se ha actualizado con éxito");
-                      }else
-                      if (_formKey.currentState!.validate()) {
-                      bool res = addMember(Member(name: nombre, datebirthday: DateTime.now(), id: members.last.id+1, role: roles[selectedRole]!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude)));
+                      }else if (password!=""&&_formKey.currentState!.validate()&& latitude!=""&&selectedRole!=""&&datebirthday!="") {
+                      registerNewMember(Member(name: nombre, datebirthday: datebirthday!, id: members.last.id+1, role: selectedRole!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude)));
                       
 
                       Fluttertoast.showToast(
@@ -232,7 +252,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
                     child: Text(actualizar ? 'Actualizar' : 'Registrar'),
 
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0x1A2946),
+                      primary: Color(0xFF1A2946),
                     ),
                   ),
                   ElevatedButton(
@@ -279,16 +299,60 @@ class _RegisterBossPage extends State<RegisterBossPage> {
 
   }
 
+  Widget _buildDateOfBirthField({
+  required String label,
+  required Function(DateTime?) onChanged,
+  DateTime? initialDate,
+}) {
+  return Column(
+    children: [
+      Container(
+        width: double.infinity, // Esto hará que el botón ocupe todo el ancho disponible
+        child: ElevatedButton(
+          onPressed: () async {
+            datebirthday = await showDatePicker(
+              context: context,
+              initialDate: initialDate ?? DateTime.now(),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+            );
+
+            if (datebirthday != null) {
+              onChanged(datebirthday);
+              setState(() {});
+            }
+          },
+          child: Text(
+            initialDate != null
+                ? "${initialDate.day}/${initialDate.month}/${initialDate.year}"
+                : label,
+            style: TextStyle(color: Colors.white),
+          ),
+          style: ElevatedButton.styleFrom(
+            primary: Color(0xFF1A2946),
+          ),
+        ),
+      ),
+      SizedBox(height: 15),
+    ],
+  );
+}
+
+
+
   Widget _buildTextField({
   required String label,
   required Function(String) onChanged,
   String? Function(String?)? validator,
   TextInputType keyboardType = TextInputType.text,
   bool obscureText = false,
+  required String initialValue,
 }) {
   return Column(
     children: [
       TextFormField(
+        enabled: actualizar&&label=="Contraseña" ? false: true,
+        initialValue: initialValue,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,

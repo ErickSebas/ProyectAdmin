@@ -54,7 +54,7 @@ class LoginPage extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al iniciar sesión')),
+        SnackBar(content: Text('Usuario o Contraseña Incorrecto')),
       );
     }
   }
@@ -69,7 +69,11 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Image.asset("assets/LogoNew.png", height: 130, width: 130),
+              Image.asset(
+                      "assets/LogoHorizontal.png",
+                      width: MediaQuery.of(context).size.width * 0.8, 
+                    ),
+                    SizedBox(height: 20),
               TextField(
                 controller: emailController,
                 decoration: InputDecoration(labelText: 'Correo electronico'),
@@ -107,7 +111,7 @@ class LoginPage extends StatelessWidget {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al iniciar sesión')),
+                      SnackBar(content: Text('Usuario o Contraseña Incorrectos')),
                     );
                   }
                 },

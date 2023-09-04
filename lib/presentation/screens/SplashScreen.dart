@@ -59,10 +59,14 @@ class _SplashScreenState extends State<SplashScreen> {
                 width: 500,
                 child: Column(
                   children: [
-                    Image.asset("assets/LogoNew.png", height: 150, width: 150),
+                    Image.asset(
+                      "assets/LogoHorizontal.png",
+                      width: MediaQuery.of(context).size.width * 0.9, 
+                    ),
                     SizedBox(height: 10),
                   ],
-                )),
+                )
+              ),
             //FlutterLogo(size: 150),
             const SizedBox(height: 50),
             const CircularProgressIndicator(
