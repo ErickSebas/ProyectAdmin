@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/Models/CampaignModel.dart';
 
+int estadoPerfil = 0;
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -29,18 +30,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-
-
 class CampaignProvider extends ChangeNotifier {
-  //List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"]; 
+  //List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"];
   CampaignManager manager = CampaignManager();
   List<Campaign> campaigns1 = campaigns;
-  
 
   void searchCampaign(String query) {
     campaigns1 = campaigns
-        .where((campaign) => campaign.nombre.toLowerCase().contains(query.toLowerCase()))
+        .where((campaign) =>
+            campaign.nombre.toLowerCase().contains(query.toLowerCase()))
         .toList();
     notifyListeners();
   }
@@ -52,14 +50,14 @@ class CampaignPage extends StatelessWidget {
     final searchField = Padding(
       padding: const EdgeInsets.all(12),
       child: TextFormField(
-        style: TextStyle(color: Colors.white),  
+        style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           hintText: 'Buscar',
-          hintStyle: TextStyle(color: Colors.white54),  
-          prefixIcon: Icon(Icons.search, color: Colors.white),  
+          hintStyle: TextStyle(color: Colors.white54),
+          prefixIcon: Icon(Icons.search, color: Colors.white),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),  
-            borderSide: BorderSide(color: Colors.white),  
+            borderRadius: BorderRadius.circular(30.0),
+            borderSide: BorderSide(color: Colors.white),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
@@ -83,65 +81,71 @@ class CampaignPage extends StatelessWidget {
         title: Text('Campañas', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(context).openDrawer(),
-            ),
+          builder: (context) => IconButton(
+            icon: Icon(Icons.menu, color: Colors.white),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
       ),
-      drawer: Drawer(  
+      drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             DrawerHeader(
-              decoration: BoxDecoration(
-                color: Color(0xFF4D6596),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center, 
-                    crossAxisAlignment: CrossAxisAlignment.center, 
-                    children: [
-                      CircleAvatar(
-                        backgroundImage: AssetImage('assets/perritoProfile.png'), 
-                        radius: 30,  
-                      ),
-                      SizedBox(height: 10),  
-                      Column(
-                        children: [
-                          Text(
-                            miembroActual!.name,  
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                decoration: BoxDecoration(
+                  color: Color(0xFF4D6596),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          backgroundImage:
+                              AssetImage('assets/perritoProfile.png'),
+                          radius: 30,
+                        ),
+                        SizedBox(height: 10),
+                        Column(
+                          children: [
+                            Text(
+                              miembroActual!.name,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 5), 
-                          Text(
-                            miembroActual!.correo,  
-                            style: TextStyle(
-                              color: Colors.white70,  
-                              fontSize: 14,
+                            SizedBox(height: 5),
+                            Text(
+                              miembroActual!.correo,
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 14,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      
-                    ],
-                  ),
-                ],
-              ) 
-            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                )),
             ListTile(
               leading: Icon(Icons.campaign),
               title: Text('Registrar Campaña'),
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: Campaign(id: 0, nombre: "", descripcion: "", categoria: ""),)),
+                  MaterialPageRoute(
+                      builder: (context) => RegisterCampaignPage(
+                            initialData: Campaign(
+                                id: 0,
+                                nombre: "",
+                                descripcion: "",
+                                categoria: ""),
+                          )),
                 );
               },
             ),
@@ -151,7 +155,19 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterBossPage(initialData: Member(name: "", datebirthday: DateTime.now(), id: 0, role: "", contrasena: "", correo: "", telefono: 0, carnet: "", latitud: 0, longitud: 0))),
+                  MaterialPageRoute(
+                      builder: (context) => RegisterBossPage(
+                          initialData: Member(
+                              name: "",
+                              datebirthday: DateTime.now(),
+                              id: 0,
+                              role: "",
+                              contrasena: "",
+                              correo: "",
+                              telefono: 0,
+                              carnet: "",
+                              latitud: 0,
+                              longitud: 0))),
                 );
               },
             ),
@@ -161,7 +177,14 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: Campaign(id: 0, nombre: "", descripcion: "", categoria: ""),)),
+                  MaterialPageRoute(
+                      builder: (context) => RegisterCampaignPage(
+                            initialData: Campaign(
+                                id: 0,
+                                nombre: "",
+                                descripcion: "",
+                                categoria: ""),
+                          )),
                 );
               },
             ),
@@ -169,9 +192,11 @@ class CampaignPage extends StatelessWidget {
               leading: Icon(Icons.account_circle),
               title: Text('Perfil'),
               onTap: () {
+                estadoPerfil = 0;
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage(member: miembroActual)),
+                  MaterialPageRoute(
+                      builder: (context) => ProfilePage(member: miembroActual)),
                 );
               },
             ),
@@ -179,6 +204,7 @@ class CampaignPage extends StatelessWidget {
               leading: Icon(Icons.account_tree),
               title: Text('Cuentas'),
               onTap: () {
+                estadoPerfil = 1;
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => ListMembersScreen()),
@@ -214,22 +240,27 @@ class CampaignPage extends StatelessWidget {
                     return Card(
                       elevation: 4.0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),  
+                        borderRadius: BorderRadius.circular(15.0),
                       ),
                       margin: const EdgeInsets.all(10.0),
                       child: ListTile(
                         title: Text(
                           provider.campaigns1[index].nombre,
-                          style: TextStyle(color: Color(0xFF4D6596), fontWeight: FontWeight.bold), 
+                          style: TextStyle(
+                              color: Color(0xFF4D6596),
+                              fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
                           provider.campaigns1[index].descripcion,
-                          style: TextStyle(color: Color(0xFF4D6596)), 
+                          style: TextStyle(color: Color(0xFF4D6596)),
                         ),
                         onTap: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: provider.campaigns1[index],)),
+                            MaterialPageRoute(
+                                builder: (context) => RegisterCampaignPage(
+                                      initialData: provider.campaigns1[index],
+                                    )),
                           );
                         },
                       ),
@@ -245,7 +276,11 @@ class CampaignPage extends StatelessWidget {
         onPressed: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => RegisterCampaignPage(initialData: Campaign(id: 0, nombre: "", descripcion: "", categoria: ""),)),
+            MaterialPageRoute(
+                builder: (context) => RegisterCampaignPage(
+                      initialData: Campaign(
+                          id: 0, nombre: "", descripcion: "", categoria: ""),
+                    )),
           );
         },
         child: Icon(Icons.add),
@@ -255,5 +290,3 @@ class CampaignPage extends StatelessWidget {
     );
   }
 }
-
-
