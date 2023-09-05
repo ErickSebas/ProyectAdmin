@@ -1,6 +1,8 @@
 
 
+import 'package:admin/Models/Cardholder.dart';
 import 'package:admin/Models/Profile.dart';
+import 'package:admin/presentation/screens/List_members.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +15,7 @@ void main() => runApp(MyApp());
 
 class RegisterBossPage extends StatefulWidget {
   final Member initialData;
+  
 
   RegisterBossPage({Key? key, required this.initialData}) : super(key: key);
 
@@ -22,6 +25,9 @@ class RegisterBossPage extends StatefulWidget {
 
 class _RegisterBossPage extends State<RegisterBossPage> {
   final _formKey = GlobalKey<FormState>();
+  Member? result;
+  String resultName = "";
+  int resultIdJefe=0;
   String nombre = '';
   String descripcion = '';
   var edad = '';
@@ -58,6 +64,18 @@ class _RegisterBossPage extends State<RegisterBossPage> {
     members.add(newMember);
   }
 
+  void registerNewCardholder(Carnetizador newCard) {
+    cardholders.add(newCard);
+  }
+
+  void updateCardHolder(Carnetizador card) {
+    int index =cardholders.indexWhere((card) => card.id == id);
+    if (index != -1) {  
+      cardholders[index].id_Jefe_Brigada = card.id_Jefe_Brigada;
+    }
+  }
+
+
   void updateMemberById(int id, Member updatedMember) {
     int index =members.indexWhere((member) => member.id == id);
     if (index != -1) {  
@@ -74,6 +92,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
 
   
   void Cargar_Datos(){
+    
     id = widget.initialData.id;
     actualizar = true;
     nombre = widget.initialData.name;
@@ -85,6 +104,22 @@ class _RegisterBossPage extends State<RegisterBossPage> {
     telefono = widget.initialData.telefono.toString();
     carnet = widget.initialData.carnet;
     longitude = widget.initialData.longitud.toString();
+    datebirthday = widget.initialData.datebirthday;
+
+    int indexCard =cardholders.indexWhere((card) => card.id== widget.initialData.id);
+    if (indexCard != -1) {  
+      
+      resultName=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].name;
+      DateTime resultDate=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].datebirthday;
+      String resultRole=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].role;
+      String resultCorreo=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].correo;
+      int resultTelefono=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].telefono;
+      String resultCarnet=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].carnet;
+      double resultLatitude=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].latitud;
+      double resultLongitude=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].longitud;
+      resultIdJefe = cardholders[indexCard].id_Jefe_Brigada;
+      result = Member(name: resultName, datebirthday: resultDate, id: resultIdJefe, role: resultRole, contrasena: "", correo: resultCorreo, telefono: resultTelefono, carnet: resultCarnet, latitud: resultLatitude, longitud: resultLongitude);
+    }
   }
 
   Future<void> Permisos() async{
@@ -110,6 +145,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
       builder: (context) => IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () {
+          esCarnetizador = false;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
@@ -169,10 +205,45 @@ class _RegisterBossPage extends State<RegisterBossPage> {
             onChanged: (newValue) {
               setState(() {
                 selectedRole = newValue;
+                if(newValue=="Carnetizador"){
+                  esCarnetizador = true;
+                }else{
+                  esCarnetizador = false;
+                }
               });
             },
             
           ),
+          esCarnetizador?
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,  
+            children: [
+              SizedBox(height: 10),
+              Text("Seleccionar Jefe:", style: TextStyle(color: Colors.white)),
+              Container(  
+                width: double.infinity,  
+                child: ElevatedButton(
+                  child: Text( result==null? "Seleccionar":result!.name),
+                  onPressed: () async {
+                      result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ListMembersScreen(),
+                      ),
+                    );
+                    if (result!=null) {
+                      setState(() {
+                        
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    primary: Color(0xFF1A2946),
+                  ),
+                ),
+              ),
+            ],
+          ):Container(),
           SizedBox(height: 10),
           Text("Dirección:", style: TextStyle(color: Colors.white)),
           ElevatedButton(
@@ -196,7 +267,7 @@ class _RegisterBossPage extends State<RegisterBossPage> {
             style: ElevatedButton.styleFrom(
               primary: Color(0xFF1A2946),
             ),
-          ),
+          ), 
           Align(
             alignment: Alignment.center,
             child: Text(latitude + " " + longitude, style: TextStyle(color: Colors.white),
@@ -226,13 +297,21 @@ class _RegisterBossPage extends State<RegisterBossPage> {
                     onPressed: () async {
                       if(actualizar&&_formKey.currentState!.validate()&&latitude!=""&&selectedRole!=""&&datebirthday!=""){
                         Member newMember = Member(name: nombre, datebirthday: datebirthday!, id: id, role: selectedRole!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude));
+                        if(esCarnetizador){
+                          updateCardHolder(Carnetizador(id: id, id_Jefe_Brigada: result!.id));
+                        }
                         updateMemberById(id, newMember);
                         if(miembroActual!.id==id){
                           miembroActual = newMember;
                         }
+                        esCarnetizador = false;
                         Mostrar_Finalizado(context, "Se ha actualizado con éxito");
                       }else if (password!=""&&_formKey.currentState!.validate()&& latitude!=""&&selectedRole!=""&&datebirthday!="") {
                       registerNewMember(Member(name: nombre, datebirthday: datebirthday!, id: members.last.id+1, role: selectedRole!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude)));
+
+                      if(esCarnetizador){
+                          registerNewCardholder(Carnetizador(id: cardholders.length!=0?cardholders.last.id+1:1, id_Jefe_Brigada: result!.id));
+                      }
                       
 
                       Fluttertoast.showToast(
@@ -244,7 +323,8 @@ class _RegisterBossPage extends State<RegisterBossPage> {
                           textColor: Colors.white,
                           fontSize: 16.0
                       );
-                        Mostrar_Finalizado(context, "Se ha registrado con éxito");
+                      esCarnetizador = false;
+                      Mostrar_Finalizado(context, "Se ha registrado con éxito");
                       } else {
                         Mostrar_Error(context, "Ingrese todos los campos");
                       }

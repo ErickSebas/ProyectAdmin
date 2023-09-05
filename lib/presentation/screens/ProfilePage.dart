@@ -15,7 +15,7 @@ import 'package:mailer/smtp_server.dart';
 class ProfilePage extends StatelessWidget {
   final Member? member;
 
-  sendEmail() async {
+  Future<bool> sendEmail() async {
     final smtpServer = gmail('bdcbba96@gmail.com', 'ehbh ugsw srnj jxsf');
 
     final message = Message()
@@ -27,11 +27,14 @@ class ProfilePage extends StatelessWidget {
     try {
       final sendReport = await send(message, smtpServer);
       print('Message sent: ' + sendReport.toString());
+      return true;
     } catch (e) {
       print('Message not sent.');
       print(e.toString());
+      return false;
     }
   }
+
 
   ProfilePage({required this.member});
 
@@ -118,6 +121,9 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           ElevatedButton(
                             onPressed: () {
+                              if(member!.role=="Carnetizador"){
+                                esCarnetizador=true;
+                              }
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
@@ -155,7 +161,7 @@ class ProfilePage extends StatelessWidget {
                           SizedBox(width: 20),
                           ElevatedButton(
                             onPressed: () async {
-                              await sendEmail();
+                              await _buildSendEmailButton();
                               await Mostrar_Mensaje(context,
                                   "Se ha enviado un código a tu correo electrónico.");
                               Navigator.pushReplacement(
@@ -193,6 +199,36 @@ class ProfilePage extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildSendEmailButton() {
+    return FutureBuilder<bool>(
+        future: sendEmail(),
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+            } else if (!snapshot.data!) {
+                return Text('No se pudo enviar el correo.');
+            } else {
+                return ElevatedButton(
+                    onPressed: () async {
+                        await Mostrar_Mensaje(context, "Se ha enviado un código a tu correo electrónico.");
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ChangePasswordPage(),
+                            ),
+                        );
+                    },
+                    child: Text("Ir a Cambiar Contraseña"),
+                );
+            }
+        },
+    );
+}
+
+  
 
   Widget _buildInfoItem(String text) {
     final List<String> parts =

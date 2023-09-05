@@ -30,6 +30,7 @@ FirebaseFirestore db = FirebaseFirestore.instance;
 FirebaseStorage storage = FirebaseStorage.instance;
 double? proceso = 0.0;
 Member? miembroActual;
+bool esCarnetizador = false;
 
 // Método guardar Archivo JSON
 Future<File> _saveJsonInStorage(String jsonData) async {

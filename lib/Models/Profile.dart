@@ -74,7 +74,7 @@ final List<Member> members = [
       name: "Carlos",
       datebirthday: DateTime.now(),
       id: 4,
-      role: "Carnetizador",
+      role: "Jefe de Brigada",
       contrasena: "12345",
       correo: "carlos@gmail.com",
       telefono: 543543,

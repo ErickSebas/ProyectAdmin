@@ -1,3 +1,4 @@
+import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
@@ -13,11 +14,11 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
   final List<String> roles = [
     "Todos",
     "Administrador",
-    "Jefes",
+    "Jefe de Brigada",
     "Carnetizador",
-    "Clientes"
+    //"Clientes"
   ];
-  String selectedRole = "Todos";
+  String selectedRole = esCarnetizador?"Jefe de Brigada": "Todos";
   String searchQuery = "";
 
   List<Member> filteredMembers() {
@@ -54,7 +55,7 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.arrow_back),
-            onPressed: () {
+            onPressed: () {esCarnetizador? Navigator.pop(context):
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -86,7 +87,7 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                       child: Text(role, style: TextStyle(color: Colors.white)),
                     );
                   }).toList(),
-                  onChanged: (newValue) {
+                  onChanged: esCarnetizador ? null: (newValue) {
                     setState(() {
                       selectedRole = newValue!;
                     });
@@ -168,12 +169,22 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                           SizedBox(height: 16),
                           Align(
                             alignment: Alignment.bottomRight,
-                            child: Row(
+                            child: esCarnetizador? Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 ElevatedButton(
                                   onPressed: () {
-                                    // Lógica para eliminar el miembro
+                                    Navigator.of(context).pop(member);
+                                  },
+                                  child: Text("Seleccionar"),
+                                ),
+                              ],
+                            ) : Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    
                                   },
                                   child: Text("Eliminar"),
                                 ),
