@@ -100,89 +100,91 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Container(
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInfoItem("Correo: ${member!.correo}"),
-                    _buildInfoItem("Carnet: ${member!.carnet}"),
-                    _buildInfoItem("Teléfono: ${member!.telefono}"),
-                    _buildInfoItem(
-                        "Fecha de Nacimiento: ${member!.datebirthday}"),
-                    _buildMap(member!.latitud, member!.longitud),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => RegisterBossPage(
-                                      initialData: Member(
-                                          name: member!.name,
-                                          datebirthday: member!.datebirthday,
-                                          id: member!.id,
-                                          role: member!.role,
-                                          contrasena: "",
-                                          correo: member!.correo,
-                                          telefono: member!.telefono,
-                                          carnet: member!.carnet,
-                                          latitud: member!.latitud,
-                                          longitud: member!.longitud))),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Color.fromARGB(255, 255, 255, 255),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInfoItem("Correo: ${member!.correo}"),
+                      _buildInfoItem("Carnet: ${member!.carnet}"),
+                      _buildInfoItem("Teléfono: ${member!.telefono}"),
+                      _buildInfoItem(
+                          "Fecha de Nacimiento: ${member!.datebirthday}"),
+                      _buildMap(member!.latitud, member!.longitud),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => RegisterBossPage(
+                                        initialData: Member(
+                                            name: member!.name,
+                                            datebirthday: member!.datebirthday,
+                                            id: member!.id,
+                                            role: member!.role,
+                                            contrasena: "",
+                                            correo: member!.correo,
+                                            telefono: member!.telefono,
+                                            carnet: member!.carnet,
+                                            latitud: member!.latitud,
+                                            longitud: member!.longitud))),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              primary: Color.fromARGB(255, 255, 255, 255),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                            child: Text(
+                              "Editar Perfil",
+                              style: TextStyle(
+                                color: Color(0xFF4D6596),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            "Editar Perfil",
-                            style: TextStyle(
-                              color: Color(0xFF4D6596),
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
+                          SizedBox(width: 20),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await sendEmail();
+                              await Mostrar_Mensaje(context,
+                                  "Se ha enviado un código a tu correo electrónico.");
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ChangePasswordPage()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              primary: Color.fromARGB(255, 255, 255, 255),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
                             ),
-                          ),
-                        ),
-                        SizedBox(width: 20),
-                        ElevatedButton(
-                          onPressed: () async {
-                            await sendEmail();
-                            await Mostrar_Mensaje(context,
-                                "Se ha enviado un código a tu correo electrónico.");
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ChangePasswordPage()),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Color.fromARGB(255, 255, 255, 255),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 30, vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30.0),
+                            child: Text(
+                              "Cambiar Contraseña",
+                              style: TextStyle(
+                                color: Color(0xFF4D6596),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            "Cambiar Contraseña",
-                            style: TextStyle(
-                              color: Color(0xFF4D6596),
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      ],
-                    )
-                  ],
+                          )
+                        ],
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),

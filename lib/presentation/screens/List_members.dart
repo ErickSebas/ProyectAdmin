@@ -1,11 +1,7 @@
-import 'package:admin/Models/Profile.dart';
-
-import 'package:admin/presentation/screens/Campaign.dart';
-
-import 'package:admin/presentation/screens/ProfilePage.dart';
-
 import 'package:flutter/material.dart';
-
+import 'package:admin/Models/Profile.dart';
+import 'package:admin/presentation/screens/Campaign.dart';
+import 'package:admin/presentation/screens/ProfilePage.dart';
 import 'package:provider/provider.dart';
 
 class ListMembersScreen extends StatefulWidget {
@@ -14,8 +10,6 @@ class ListMembersScreen extends StatefulWidget {
 }
 
 class _ListMembersScreenState extends State<ListMembersScreen> {
-  // Define una lista de roles disponibles
-
   final List<String> roles = [
     "Todos",
     "Administrador",
@@ -23,18 +17,30 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
     "Carnetizador",
     "Clientes"
   ];
-
-  // Define el valor seleccionado inicial y el valor seleccionado actual
-
   String selectedRole = "Todos";
-
-  // Función para filtrar la lista según el rol seleccionado
+  String searchQuery = "";
 
   List<Member> filteredMembers() {
     if (selectedRole == "Todos") {
-      return members; // Mostrar todos los miembros
+      return members.where((member) {
+        final lowerCaseName = member.name.toLowerCase();
+        final lowerCaseCarnet = member.carnet.toLowerCase();
+        final lowerCaseQuery = searchQuery.toLowerCase();
+
+        return lowerCaseName.contains(lowerCaseQuery) ||
+            lowerCaseCarnet.contains(lowerCaseQuery);
+      }).toList();
     } else {
-      return members.where((member) => member.role == selectedRole).toList();
+      return members.where((member) {
+        final lowerCaseName = member.name.toLowerCase();
+        final lowerCaseCarnet = member.carnet.toLowerCase();
+        final lowerCaseRole = member.role.toLowerCase();
+        final lowerCaseQuery = searchQuery.toLowerCase();
+
+        return (lowerCaseName.contains(lowerCaseQuery) ||
+                lowerCaseCarnet.contains(lowerCaseQuery)) &&
+            lowerCaseRole == selectedRole.toLowerCase();
+      }).toList();
     }
   }
 
@@ -52,29 +58,25 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider(
-                        create: (context) => CampaignProvider(),
-                        child: CampaignPage())),
+                  builder: (context) => ChangeNotifierProvider(
+                    create: (context) => CampaignProvider(),
+                    child: CampaignPage(),
+                  ),
+                ),
               );
             },
           ),
         ),
       ),
       body: Container(
-        color: Color(
-            0xFF4D6596), // Cambiar el color de fondo detrás de todo el contenido
-
+        color: Color(0xFF4D6596),
         child: Column(
           children: [
-            // Agregar ComboBox (DropdownButtonFormField) antes de la lista
-
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Theme(
                 data: ThemeData(
-                  canvasColor: Color(
-                    0xFF4D6596, // Cambiar el color de fondo del menú desplegable
-                  ),
+                  canvasColor: Color(0xFF4D6596),
                 ),
                 child: DropdownButtonFormField<String>(
                   value: selectedRole,
@@ -96,13 +98,29 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                 ),
               ),
             ),
-
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                onChanged: (query) {
+                  setState(() {
+                    searchQuery = query;
+                  });
+                },
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Buscar por nombre o carnet',
+                  labelStyle: TextStyle(color: Colors.white),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 itemCount: filteredMembers().length,
                 itemBuilder: (context, index) {
                   final member = filteredMembers()[index];
-
                   return Container(
                     margin: EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -121,10 +139,12 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(member.name,
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold)),
+                              Text(
+                                member.name,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
                               Text(
                                 "${member.datebirthday.day}/${member.datebirthday.month}/${member.datebirthday.year}",
                                 style: TextStyle(color: Colors.white),
@@ -132,15 +152,19 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                             ],
                           ),
                           SizedBox(height: 8),
-                          Text("ID: ${member.id}",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            "Carnet: ${member.carnet}",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
                           SizedBox(height: 8),
-                          Text("Rol: ${member.role}",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            "Rol: ${member.role}",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold),
+                          ),
                           SizedBox(height: 16),
                           Align(
                             alignment: Alignment.bottomRight,
@@ -153,13 +177,9 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                                   },
                                   child: Text("Eliminar"),
                                 ),
-
-                                SizedBox(width: 10), // Espacio entre botones
-
+                                SizedBox(width: 10),
                                 ElevatedButton(
                                   onPressed: () {
-                                    // Navegar a la página de perfil y pasar el objeto Member correspondiente
-
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
