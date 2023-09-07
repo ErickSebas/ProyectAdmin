@@ -95,12 +95,18 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
 
               // Divide el texto por las comas
               List<String> splitCoordinates = coordinatesText.split(',');
+              name =name.replaceAll('Ã³', 'ó'); 
+              name =name.replaceAll('Vacunacion', 'Vacunación'); 
+              name=name.replaceAll('vacunacion', 'Vacunación');
+              name =name.replaceAll('VACUNACION', 'VACUNACIÓN');
+              print(name);
 
               if (splitCoordinates.length >= 2) {
                 longitude = splitCoordinates[0];
                 latitude = splitCoordinates[1];
                 Ubicaciones.add(EUbication(
-                    name: name, latitude: latitude, longitude: longitude));
+                  name: name, latitude: latitude, longitude: longitude)
+                );
               }
             }
           }
@@ -111,6 +117,9 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
       });
     }
   }
+
+
+
 
 
 
