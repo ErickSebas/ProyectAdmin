@@ -8,6 +8,7 @@
 // Esta clase está restringida para su uso, sin la previa autorización de Sedes-Univalle.
 // </copyright>
 
+import 'package:admin/Models/CampaignModel.dart';
 import 'package:admin/presentation/screens/Login.dart';
 
 import 'package:flutter/material.dart';
@@ -28,7 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> Navegar_Pantalla_Main() async {
-    await Future.delayed(const Duration(seconds: 2)); // Espera 2 segundos
+    campaigns = await fetchCampaigns();
+    //await Future.delayed(const Duration(seconds: 2)); // Espera 2 segundos
     // ignore: use_build_context_synchronously
     Navigator.pushReplacement(
       context,

@@ -34,6 +34,8 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
   bool actualizar = false;
   String? errorMessage;
   var id;
+  DateTime? dateStart = DateTime.now();
+  DateTime? dateEnd = DateTime.now();
 
   void initState(){
     super.initState();
@@ -43,19 +45,6 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
     }
   }
 
-  void updateCampaignById(int id, Campaign updatedCampaign) {
-    int index =campaigns.indexWhere((campaign) => campaign.id == id);
-    if (index != -1) {  
-      campaigns[index] = updatedCampaign;
-    }
-  }
-
-  void registerNewCampaign(Campaign newCampaign) {
-    // Aquí simplemente añades la nueva campaña a la lista.
-    campaigns.add(newCampaign);
-  }
-    
-
 
   void Cargar_Datos(){
     id = widget.initialData.id;
@@ -63,6 +52,8 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
     nombre = widget.initialData.nombre;
     descripcion = widget.initialData.descripcion;
     categoria = widget.initialData.categoria;
+    dateStart = widget.initialData.dateStart;
+    dateEnd = widget.initialData.dateEnd;
   }
   
    void Importar_Archivo() async {
@@ -99,7 +90,6 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               name =name.replaceAll('Vacunacion', 'Vacunación'); 
               name=name.replaceAll('vacunacion', 'Vacunación');
               name =name.replaceAll('VACUNACION', 'VACUNACIÓN');
-              print(name);
 
               if (splitCoordinates.length >= 2) {
                 longitude = splitCoordinates[0];
@@ -198,7 +188,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 value: categoria,
                 dropdownColor: Colors.grey[850], 
                 style: TextStyle(color: Colors.white),
-                items: <String>['Categoría 1', 'Categoría 2', 'Categoría 3']
+                items: <String>['Vacuna', 'Carnetizacion']
                 .map((String value) {
                     return DropdownMenuItem<String>(
                         value: value,
@@ -212,6 +202,22 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 },
                 
               ),
+              SizedBox(height: 10),
+          Text("Fecha Inico:", style: TextStyle(color: Colors.white)),
+          _buildDateOfBirthField(
+            initialDate: dateStart,
+            label: 'Fecha Inico',
+            onChanged: (value) => dateStart = value,
+            fecha: dateStart
+          ),
+          SizedBox(height: 10),
+          Text("Fecha Fin:", style: TextStyle(color: Colors.white)),
+          _buildDateOfBirthField(
+            initialDate: dateEnd,
+            label: 'Fecha Fin',
+            onChanged: (value) => dateEnd = value,
+            fecha: dateEnd
+          ),
               SizedBox(height: 15),
               ElevatedButton(
                 onPressed: estaCargando ? null : Importar_Archivo,
@@ -232,16 +238,16 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () async {
-                      if(actualizar&&_formKey.currentState!.validate()){
-                        Campaign updatedCampaign = Campaign(id: id, nombre: nombre, descripcion: descripcion, categoria: categoria!);
-                        updateCampaignById(id, updatedCampaign);
+                      if(actualizar&&_formKey.currentState!.validate() && (dateStart!.isBefore(dateEnd!)||dateStart!.isAtSameMomentAs(dateEnd!)) ){
+                        Campaign updatedCampaign = Campaign(id: id, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
+                        updateCampaignById(updatedCampaign);
                         Mostrar_Finalizado(context, "Se ha actualizado con éxito");
                         if(kml!=''){
                           //Actualizar Ubicaciones
                           setState(() {
                             estaCargando = true;
                           });
-                          await Subir_Json_Firebase(Ubicaciones, (double valorProceso) {
+                          await Subir_Json_Firebase( id,Ubicaciones, (double valorProceso) {
                               setState(() {
                                   proceso = valorProceso;
                               });
@@ -251,14 +257,14 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                               estaCargando = false;
                           });
                         }
-                      }else if (_formKey.currentState!.validate()&&categoria!=null&&kml!='') {
+                      }else if (_formKey.currentState!.validate()&&categoria!=null&&kml!=''&& (dateStart!.isBefore(dateEnd!)||dateStart!.isAtSameMomentAs(dateEnd!)) ){
                         //Registrar
-                      Campaign newCampaign = Campaign(id: campaigns.last.id+1, nombre: nombre, descripcion: descripcion, categoria: categoria!);
+                      Campaign newCampaign = Campaign(id: campaigns.last.id+1, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
                       registerNewCampaign(newCampaign);
                       setState(() {
                         estaCargando = true;
                       });
-                      await Subir_Json_Firebase(Ubicaciones, (double valorProceso) {
+                      await Subir_Json_Firebase(campaigns.last.id+1,Ubicaciones, (double valorProceso) {
                           setState(() {
                               proceso = valorProceso;
                           });
@@ -289,14 +295,12 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     ),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
-                        child: CampaignPage())),
-                      );
+                    onPressed: () async {
+                      deleteCampaignById(id, miembroActual!.id);
+                      await eliminarArchivoDeStorage(id);
+                      Mostrar_Finalizado(context, "Se ha Elminado con éxito");
                     },
-                    child: Text('Cancelar'),
+                    child: Text('Eliminar'),
                     style: ElevatedButton.styleFrom(
                       primary: Colors.red,
                     ),
@@ -332,4 +336,46 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
       
     );
   }
+  Widget _buildDateOfBirthField({
+  required String label,
+  required Function(DateTime?) onChanged,
+  DateTime? initialDate,
+  DateTime? fecha,
+}) {
+  return Column(
+    children: [
+      Container(
+        width: double.infinity, 
+        child: ElevatedButton(
+          onPressed: () async {
+            fecha = await showDatePicker(
+              context: context,
+              initialDate: initialDate ?? DateTime.now(),
+              firstDate: DateTime(1900),
+              lastDate: DateTime.now(),
+            );
+
+            if (fecha != null) {
+              onChanged(fecha);
+              setState(() {});
+            }
+          },
+          child: Text(
+            initialDate != null
+                ? "${initialDate.day}/${initialDate.month}/${initialDate.year}"
+                : label,
+            style: TextStyle(color: Colors.white),
+          ),
+          style: ElevatedButton.styleFrom(
+            primary: Color(0xFF1A2946),
+          ),
+        ),
+      ),
+      SizedBox(height: 15),
+    ],
+  );
 }
+
+}
+
+

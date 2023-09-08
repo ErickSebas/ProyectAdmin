@@ -31,18 +31,30 @@ FirebaseStorage storage = FirebaseStorage.instance;
 double? proceso = 0.0;
 Member? miembroActual;
 bool esCarnetizador = false;
+int idCamp = 0;
 
 // Método guardar Archivo JSON
 Future<File> _saveJsonInStorage(String jsonData) async {
   final directorio = await getApplicationDocumentsDirectory();
-  final file = File('${directorio.path}/ubications.json');
+  final file = File('${directorio.path}/campana'+idCamp.toString()+'.json');
   return file.writeAsString(jsonData);
 }
 
-Future<void> Subir_Json_Firebase(List<EUbication> Ubicaciones, Function(double) enProceso) async {
+Future<void> eliminarArchivoDeStorage(int id) async {
+  Reference ref = storage.ref().child('campana' + id.toString() + '.json');
+  try {
+    await ref.delete();
+    print("Archivo eliminado correctamente.");
+  } catch (e) {
+    print("Error al eliminar el archivo: $e");
+  }
+}
+
+Future<void> Subir_Json_Firebase(int id,List<EUbication> Ubicaciones, Function(double) enProceso) async {
+    idCamp = id;
     String jsonUbication = jsonEncode(Ubicaciones.map((p) => p.toJson()).toList());
     File file = await _saveJsonInStorage(jsonUbication);
-    Reference ref = storage.ref().child('ubications.json');
+    Reference ref = storage.ref().child('campana'+idCamp.toString()+'.json');
     UploadTask uploadTask = ref.putFile(file);
 
     // Escucha los cambios en el progreso de la tarea

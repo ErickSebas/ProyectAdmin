@@ -1,30 +1,133 @@
-class Campaign {
-  final int id;
-  final String nombre;
-  final String descripcion;
-  final String categoria;
+import 'dart:convert';
 
-  Campaign({required this.id, required this.nombre, required this.descripcion, required this.categoria});
-}
+import 'package:http/http.dart' as http;
 
-
-
-class CampaignManager {
  
 
-  // Getter para obtener la lista de campañas
-  List<Campaign> get campaigns => campaigns;
-
-  // Setter para modificar la lista de campañas
-  set campaigns(List<Campaign> newCampaigns) {
-    campaigns = newCampaigns;
+Future<List<Campaign>> fetchCampaigns() async {
+final response = await http.get(Uri.parse('http://10.0.2.2:3000/campanas'));
+  if (response.statusCode == 200) {
+    List<dynamic> jsonResponse = json.decode(response.body);
+    return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
+  } else {
+    throw Exception('Failed to load campaigns');
   }
-
-  
 }
 
- final List<Campaign> campaigns = [
-    Campaign(id: 1, nombre: "Campaña 1", descripcion: "Descripción Campaña 1", categoria: "Categoría 1"),
-    Campaign(id: 2, nombre: "Campaña 2", descripcion: "Descripción Campaña 2", categoria: "Categoría 2"),
-    Campaign(id: 3, nombre: "Campaña 3", descripcion: "Descripción Campaña 3", categoria: "Categoría 3"),
+Future<void> registerNewCampaign(Campaign newCampaign) async {
+  // Convertir tu objeto Campaign a JSON.
+  final campaignJson = json.encode({
+//'idCampañas': newCampaign.id,
+    'NombreCampaña': newCampaign.nombre,
+    'Descripcion': newCampaign.descripcion,
+    'Categoria': newCampaign.categoria,
+    'FechaInicio': newCampaign.dateStart.toString(),
+    'FechaFinal': newCampaign.dateEnd.toString(),
+    'userId':newCampaign.userId
+  });
+final response = await http.post(
+Uri.parse('http://10.0.2.2:3000/campanas'),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: campaignJson,
+  );
+  if (response.statusCode != 200 && response.statusCode != 201) {
+
+    throw Exception(response);
+  }
+  campaigns.add(newCampaign);
+}
+
+Future<void> updateCampaignById(Campaign updatedCampaign) async {
+  // Convertir tu objeto Campaign a JSON.
+  var id = updatedCampaign.id;
+  final campaignJson = json.encode({
+'idCampañas': updatedCampaign.id,
+    'NombreCampaña': updatedCampaign.nombre,
+    'Descripcion': updatedCampaign.descripcion,
+    'Categoria': updatedCampaign.categoria,
+    'FechaInicio': updatedCampaign.dateStart.toString(),
+    'FechaFinal': updatedCampaign.dateEnd.toString(),
+    'userId':updatedCampaign.userId
+  });
+  final response = await http.put(
+Uri.parse('http://10.0.2.2:3000/campanas/$id'),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: campaignJson,
+  );
+
+  if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception(response);
+  }
+  // Actualizar el objeto Campaign en tu lista local.
+int index = campaigns.indexWhere((campaign) => campaign.id == id);
+  if (index != -1) {
+    campaigns[index] = updatedCampaign;
+  }
+}
+
+Future<void> deleteCampaignById(int id, int userId) async {
+  // Convertir tu objeto Campaign a JSON.
+  final campaignJson = json.encode({
+'idCampañas': id,
+    'userId':userId
+  });
+  final response = await http.put(
+Uri.parse('http://10.0.2.2:3000/campanas/delete/$id'),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: campaignJson,
+  );
+
+  if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception(response);
+  }
+  // Actualizar el objeto Campaign en tu lista local.
+int index = campaigns.indexWhere((campaign) => campaign.id == id);
+  if (index != -1) {
+    campaigns.removeAt(index);
+  }
+}
+
+class Campaign {
+
+  final int id;
+
+  final String nombre;
+
+  final String descripcion;
+
+  final String categoria;
+
+  final DateTime dateStart;
+  final DateTime dateEnd;
+  final int userId;
+
+ 
+
+Campaign({required this.id, required this.nombre, required this.descripcion, required this.categoria, required this.dateStart, required this.dateEnd, required this.userId});
+
+ 
+
+  // Constructor desde JSON
+
+  factory Campaign.fromJson(Map<String, dynamic> json) {
+    return Campaign(
+      id: json['idCampañas'],
+      nombre: json['NombreCampaña'],
+      descripcion: json['Descripcion'],
+      categoria: json['Categoria'],
+      dateStart: DateTime.parse(json['FechaInicio']),
+      dateEnd: DateTime.parse(json['FechaFinal']),
+      userId: json['userId'],
+    );
+  }
+}
+
+ late List<Campaign> campaigns = [
+    
   ];
