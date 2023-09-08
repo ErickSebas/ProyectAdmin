@@ -1,123 +1,65 @@
-class MemberManager {}
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class Member {
-  late String name;
-
-  late DateTime datebirthday;
-
+  late String names;
+  late String? lastnames;
+  late DateTime fechaNacimiento;
   late int id;
-
   late String role;
-
   late String contrasena; // Nuevo atributo
-
   late String correo;
-
   late int telefono;
-
   late String carnet;
-
   late double longitud;
-
-  late double latitud; // Nuevo atributo
+  late double latitud;
+  late DateTime? fechaCreacion;
+  late int? status;
+  // Nuevo atributo
 
   Member(
-      {required this.name,
-      required this.datebirthday,
+      {required this.names,
+      this.lastnames,
+      required this.fechaNacimiento,
       required this.id,
       required this.role,
       required this.contrasena, // Nuevo atributo
-
       required this.correo, // Nuevo atributo
-
       required this.telefono,
       required this.carnet,
       required this.latitud,
-      required this.longitud});
+      required this.longitud,
+      this.fechaCreacion,
+      this.status});
+
+  factory Member.fromJson(Map<String, dynamic> json) {
+    return Member(
+        id: json['idPerson'],
+        names: json['Nombres'],
+        lastnames: json['Apellidos'],
+        fechaNacimiento: DateTime.parse(json['FechaNacimiento']),
+        correo: json['Correo'],
+        contrasena: json['Password'],
+        carnet: json['Carnet'],
+        telefono: json['Telefono'],
+        fechaCreacion: DateTime.parse(json['FechaCreacion']),
+        status: json['Status'],
+        longitud: json['Longitud'],
+        latitud: json['Latitud'],
+        role: json['NombreRol']);
+  }
+
+  Future<List<Member>> fetchMembers() async {
+    final response = await http.get(
+        Uri.parse('https://backendapi-398117.rj.r.appspot.com/allaccounts'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      final members =
+          data.map((memberData) => Member.fromJson(memberData)).toList();
+      return members;
+    } else {
+      throw Exception('Failed to load members');
+    }
+  }
 }
-
-final List<Member> members = [
-  Member(
-      name: "Marco",
-      datebirthday: DateTime.now(),
-      id: 1,
-      role: "Administrador",
-      contrasena: "12345",
-      correo: "marco@gmail.com",
-      telefono: 7549598,
-      carnet: "4gdf742h3",
-      latitud: 1,
-      longitud: 2),
-  Member(
-      name: "pepe",
-      datebirthday: DateTime.now(),
-      id: 2,
-      role: "Administrador",
-      contrasena: "12345",
-      correo: "pepe@gmail.com",
-      telefono: 1111111,
-      carnet: "11d3fwe",
-      latitud: 1,
-      longitud: 2),
-  Member(
-      name: "Ana",
-      datebirthday: DateTime.now(),
-      id: 3,
-      role: "Carnetizador",
-      contrasena: "12345",
-      correo: "ana@gmail.com",
-      telefono: 45354326,
-      carnet: "4grafre",
-      latitud: 1,
-      longitud: 2),
-  Member(
-      name: "Carlos",
-      datebirthday: DateTime.now(),
-      id: 4,
-      role: "Jefe de Brigada",
-      contrasena: "12345",
-      correo: "carlos@gmail.com",
-      telefono: 543543,
-      carnet: "f4qfrwg5ew",
-      latitud: 1,
-      longitud: 2),
-  Member(
-      name: "Laura",
-      datebirthday: DateTime.now(),
-      id: 5,
-      role: "Carnetizador",
-      contrasena: "12345",
-      correo: "laura@gmail.com",
-      telefono: 754956432543298,
-      carnet: "4f242fsf",
-      latitud: 1,
-      longitud: 2),
-  Member(
-      name: "Sara",
-      datebirthday: DateTime.now(),
-      id: 6,
-      role: "Carnetizador",
-      contrasena: "12345",
-      correo: "sara@gmail.com",
-      telefono: 6432541,
-      carnet: "f42f42fes",
-      latitud: 1,
-      longitud: 2),
-  Member(
-      name: "Galaxixs",
-      datebirthday: DateTime.now(),
-      id: 7,
-      role: "Administrador",
-      contrasena: "1717",
-      correo: "galaxixsum@gmail.com",
-      telefono: 6432541,
-      carnet: "f42f42fes",
-      latitud: 1,
-      longitud: 2),
-];
-
-
- 
-
-// Lista de miembros (puedes mantenerla aquí o cargarla desde una fuente de datos externa)
-

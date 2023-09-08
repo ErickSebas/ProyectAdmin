@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
  
 
 Future<List<Campaign>> fetchCampaigns() async {
-final response = await http.get(Uri.parse('http://10.0.2.2:3000/campanas'));
+final response = await http.get(Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas'));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
@@ -26,7 +26,7 @@ Future<void> registerNewCampaign(Campaign newCampaign) async {
     'userId':newCampaign.userId
   });
 final response = await http.post(
-Uri.parse('http://10.0.2.2:3000/campanas'),
+Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas'),
     headers: {
       'Content-Type': 'application/json',
     },
@@ -52,7 +52,7 @@ Future<void> updateCampaignById(Campaign updatedCampaign) async {
     'userId':updatedCampaign.userId
   });
   final response = await http.put(
-Uri.parse('http://10.0.2.2:3000/campanas/$id'),
+Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas/$id'),
     headers: {
       'Content-Type': 'application/json',
     },
@@ -76,7 +76,7 @@ Future<void> deleteCampaignById(int id, int userId) async {
     'userId':userId
   });
   final response = await http.put(
-Uri.parse('http://10.0.2.2:3000/campanas/delete/$id'),
+Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas/delete/$id'),
     headers: {
       'Content-Type': 'application/json',
     },

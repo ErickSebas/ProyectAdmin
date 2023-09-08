@@ -1,451 +1,336 @@
-
-
-import 'package:admin/Models/Cardholder.dart';
-import 'package:admin/Models/Profile.dart';
-import 'package:admin/presentation/screens/List_members.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:admin/Models/Profile.dart';
 import 'package:provider/provider.dart';
 import 'Campaign.dart';
 import 'LocationPicker.dart';
-import 'package:admin/services/services_firebase.dart';
 import 'package:geolocator/geolocator.dart';
 
 void main() => runApp(MyApp());
 
-class RegisterBossPage extends StatefulWidget {
-  final Member initialData;
-  
-
-  RegisterBossPage({Key? key, required this.initialData}) : super(key: key);
-
-   @override
-  _RegisterBossPage createState() => _RegisterBossPage();
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: RegisterBossPage(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
 }
 
-class _RegisterBossPage extends State<RegisterBossPage> {
+class RegisterBossPage extends StatefulWidget {
+  @override
+  _RegisterBossPageState createState() => _RegisterBossPageState();
+}
+
+class _RegisterBossPageState extends State<RegisterBossPage> {
   final _formKey = GlobalKey<FormState>();
-  Member? result;
-  String resultName = "";
-  int resultIdJefe=0;
   String nombre = '';
-  String descripcion = '';
-  var edad = '';
+  var datebirthday;
   String carnet = '';
-  String rol = '';
+  String telefono = '';
+  String? selectedRole = 'Administrador';
   String latitude = '';
   String longitude = '';
   String email = '';
   String password = '';
-  String? categoria;
-  String kml = '';
-  bool estaCargando = false;
-  String? errorMessage;
-  DateTime? datebirthday = DateTime.now();
-  var telefono='';
-  bool actualizar=false;
-  var id =0;
+  bool esCarnetizador = false;
 
-  String? selectedRole;
-    Map<String, String> roles = {
-    '1': 'Jefe de brigada',
-    '2': 'Carnetizador',
-    '3': 'Administrador',
-  };
+  void registerUser() async {
+    final url =
+        Uri.parse('https://backendapi-398117.rj.r.appspot.com/register');
+    final response = await http.post(
+      url,
+      body: jsonEncode({
+        'Nombres': nombre,
+        'FechaNacimiento': datebirthday.toIso8601String(),
+        'Carnet': carnet,
+        'Telefono': telefono,
+        'IdRol': selectedRole,
+        'Latitud': latitude,
+        'Longitud': longitude,
+        'Correo': email,
+        'Password': password,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
 
-  void initState(){
-    super.initState();
-    if(widget.initialData.name!=""){
-      Cargar_Datos();
+    if (response.statusCode == 200) {
+      // Registro exitoso
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChangeNotifierProvider(
+            create: (context) => CampaignProvider(),
+            child: CampaignPage(),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrar el usuario')),
+      );
     }
   }
 
-  void registerNewMember(Member newMember) {
-    members.add(newMember);
-  }
-
-  void registerNewCardholder(Carnetizador newCard) {
-    cardholders.add(newCard);
-  }
-
-  void updateCardHolder(Carnetizador card) {
-    int index =cardholders.indexWhere((card) => card.id == id);
-    if (index != -1) {  
-      cardholders[index].id_Jefe_Brigada = card.id_Jefe_Brigada;
-    }
-  }
-
-
-  void updateMemberById(int id, Member updatedMember) {
-    int index =members.indexWhere((member) => member.id == id);
-    if (index != -1) {  
-      members[index].name = updatedMember.name;
-      members[index].datebirthday = updatedMember.datebirthday;
-      members[index].role = updatedMember.role;
-      members[index].correo = updatedMember.correo;
-      members[index].telefono = updatedMember.telefono;
-      members[index].carnet = updatedMember.carnet;
-      members[index].latitud = updatedMember.latitud;
-      members[index].longitud = updatedMember.longitud;
-    }
-  }
-
-  
-  void Cargar_Datos(){
-    
-    id = widget.initialData.id;
-    actualizar = true;
-    nombre = widget.initialData.name;
-    descripcion = widget.initialData.carnet;
-    categoria = widget.initialData.contrasena;
-    selectedRole = widget.initialData.role;
-    email = widget.initialData.correo;
-    latitude = widget.initialData.latitud.toString();
-    telefono = widget.initialData.telefono.toString();
-    carnet = widget.initialData.carnet;
-    longitude = widget.initialData.longitud.toString();
-    datebirthday = widget.initialData.datebirthday;
-
-    int indexCard =cardholders.indexWhere((card) => card.id== widget.initialData.id);
-    if (indexCard != -1) {  
-      
-      resultName=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].name;
-      DateTime resultDate=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].datebirthday;
-      String resultRole=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].role;
-      String resultCorreo=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].correo;
-      int resultTelefono=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].telefono;
-      String resultCarnet=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].carnet;
-      double resultLatitude=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].latitud;
-      double resultLongitude=members[members.indexWhere((memberCard) => memberCard.id== cardholders[indexCard].id_Jefe_Brigada)].longitud;
-      resultIdJefe = cardholders[indexCard].id_Jefe_Brigada;
-      result = Member(name: resultName, datebirthday: resultDate, id: resultIdJefe, role: resultRole, contrasena: "", correo: resultCorreo, telefono: resultTelefono, carnet: resultCarnet, latitud: resultLatitude, longitud: resultLongitude);
-    }
-  }
-
-  Future<void> Permisos() async{
+  Future<void> Permisos() async {
     LocationPermission permiso;
-      permiso = await Geolocator.checkPermission();
-      if(permiso == LocationPermission.denied){
-        permiso = await Geolocator.requestPermission();
-        if(permiso == LocationPermission.denied){
-          return Future.error('error');
-        }
+    permiso = await Geolocator.checkPermission();
+    if (permiso == LocationPermission.denied) {
+      permiso = await Geolocator.requestPermission();
+      if (permiso == LocationPermission.denied) {
+        return Future.error('Error');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-  backgroundColor: Color(0xFF4D6596),
-  appBar: AppBar(
-    backgroundColor: Color(0xFF4D6596),
-    title: Text(actualizar ? 'Actualizar Usuario':'Registrar Usuario', style: TextStyle(color: Colors.white)),
-    centerTitle: true,
-    leading: Builder(
-      builder: (context) => IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () {
-          esCarnetizador = false;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
-            child: CampaignPage())),
-          );
-        },
+      backgroundColor: Color(0xFF4D6596),
+      appBar: AppBar(
+        backgroundColor: Color(0xFF4D6596),
+        title: Text('Registrar Usuario', style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider(
+                    create: (context) => CampaignProvider(),
+                    child: CampaignPage(),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
-    ),
-  ),
-  body: Padding(
-    padding: const EdgeInsets.all(20.0),
-    child: Form(
-      key: _formKey,
-      child: ListView(
-        children: [
-          Center(
-            child: Image.asset('assets/LogoNew.png', height: 100, width: 100,),  
-          ),
-          _buildTextField(
-            initialValue: nombre,
-            label: 'Nombre',
-            onChanged: (value) => nombre = value,
-            validator: (value) => value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
-          ),
-          SizedBox(height: 10),
-          Text("Fecha Nacimiento:", style: TextStyle(color: Colors.white)),
-          _buildDateOfBirthField(
-            initialDate: datebirthday,
-            label: 'Fecha Nacimiento',
-            onChanged: (value) => datebirthday = value,
-          ),
-          _buildTextField(
-            initialValue: carnet,
-            label: 'Carnet',
-            onChanged: (value) => carnet = value,
-            validator: (value) => value!.isEmpty ? 'El carnet no puede estar vacío.' : null,
-          ),
-          _buildTextField(
-            initialValue: telefono,
-            label: 'Teléfono',
-            onChanged: (value) => telefono = value,
-            validator: (value) => value!.isEmpty ? 'El Teléfono no puede estar vacía.' : null,
-            keyboardType: TextInputType.number,
-          ),
-          DropdownButton<String>(
-            hint: Text('Rol', style: TextStyle(color: Colors.white)),
-            value: selectedRole,
-            dropdownColor: Colors.grey[850], 
-            style: TextStyle(color: Colors.white),
-            items: <String>['Jefe de brigada', 'Carnetizador', 'Administrador']
-            .map((String value) {
-                return DropdownMenuItem<String>(
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              Center(
+                child: Image.asset(
+                  'assets/LogoNew.png',
+                  height: 100,
+                  width: 100,
+                ),
+              ),
+              _buildTextField(
+                label: 'Nombre',
+                onChanged: (value) => nombre = value,
+                validator: (value) =>
+                    value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
+              ),
+              SizedBox(height: 10),
+              Text("Fecha Nacimiento:", style: TextStyle(color: Colors.white)),
+              _buildDateOfBirthField(
+                label: 'Fecha Nacimiento',
+                onChanged: (value) => datebirthday = value,
+              ),
+              _buildTextField(
+                label: 'Carnet',
+                onChanged: (value) => carnet = value,
+                validator: (value) =>
+                    value!.isEmpty ? 'El carnet no puede estar vacío.' : null,
+              ),
+              _buildTextField(
+                label: 'Teléfono',
+                onChanged: (value) => telefono = value,
+                validator: (value) =>
+                    value!.isEmpty ? 'El Teléfono no puede estar vacía.' : null,
+                keyboardType: TextInputType.number,
+              ),
+              DropdownButton<String>(
+                hint: Text('Rol', style: TextStyle(color: Colors.white)),
+                value: selectedRole,
+                dropdownColor: Colors.grey[850],
+                style: TextStyle(color: Colors.white),
+                items: <String>[
+                  'Jefe de brigada',
+                  'Carnetizador',
+                  'Administrador'
+                ].map((String value) {
+                  return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
-                );
-            }).toList(),
-            onChanged: (newValue) {
-              setState(() {
-                selectedRole = newValue;
-                if(newValue=="Carnetizador"){
-                  esCarnetizador = true;
-                }else{
-                  esCarnetizador = false;
-                }
-              });
-            },
-            
-          ),
-          esCarnetizador?
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,  
-            children: [
-              SizedBox(height: 10),
-              Text("Seleccionar Jefe:", style: TextStyle(color: Colors.white)),
-              Container(  
-                width: double.infinity,  
-                child: ElevatedButton(
-                  child: Text( result==null? "Seleccionar":result!.name),
-                  onPressed: () async {
-                      result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ListMembersScreen(),
-                      ),
-                    );
-                    if (result!=null) {
-                      setState(() {
-                        
-                      });
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    selectedRole = newValue!;
+                    if (newValue == "Carnetizador") {
+                      esCarnetizador = true;
+                    } else {
+                      esCarnetizador = false;
                     }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: Color(0xFF1A2946),
-                  ),
+                  });
+                },
+              ),
+              esCarnetizador
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 10),
+                        Text("Seleccionar Jefe:",
+                            style: TextStyle(color: Colors.white)),
+                        Container(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            child: Text("Seleccionar"),
+                            onPressed: () async {
+                              // Agregar aquí la lógica para seleccionar un jefe
+                            },
+                            style: ElevatedButton.styleFrom(
+                              primary: Color(0xFF1A2946),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Container(),
+              SizedBox(height: 10),
+              Text("Dirección:", style: TextStyle(color: Colors.white)),
+              ElevatedButton(
+                child: Text("Selecciona una ubicación"),
+                onPressed: () async {
+                  await Permisos();
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LocationPicker(),
+                    ),
+                  );
+                  if (result != null) {
+                    setState(() {
+                      latitude = result.latitude.toString();
+                      longitude = result.longitude.toString();
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Color(0xFF1A2946),
+                ),
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: Text(
+                  latitude + " " + longitude,
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+              _buildTextField(
+                label: 'Email',
+                onChanged: (value) => email = value,
+                validator: (value) =>
+                    value!.isEmpty ? 'El email no puede estar vacío.' : null,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              _buildTextField(
+                label: 'Contraseña',
+                onChanged: (value) => password = value,
+                obscureText: true,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  if (esCarnetizador) {
+                    // Agregar aquí la lógica para seleccionar un jefe
+                  } else {
+                    if (_formKey.currentState!.validate() &&
+                        latitude != '' &&
+                        selectedRole != '' &&
+                        datebirthday != null &&
+                        password != "") {
+                      // Llama a la función para registrar al usuario
+                      registerUser();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Ingrese todos los campos')),
+                      );
+                    }
+                  }
+                },
+                child: Text('Registrar'),
+                style: ElevatedButton.styleFrom(
+                  primary: Color(0xFF1A2946),
                 ),
               ),
             ],
-          ):Container(),
-          SizedBox(height: 10),
-          Text("Dirección:", style: TextStyle(color: Colors.white)),
-          ElevatedButton(
-            child: Text("Selecciona una ubicación"),
-            onPressed: () async {
-              await Permisos();
-                
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => LocationPicker(),
-                ),
-              );
-              if (result != null) {
-                setState(() {
-                  latitude = result.latitude.toString();
-                  longitude = result.longitude.toString();
-                });
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              primary: Color(0xFF1A2946),
-            ),
-          ), 
-          Align(
-            alignment: Alignment.center,
-            child: Text(latitude + " " + longitude, style: TextStyle(color: Colors.white),
-            ),
           ),
-
-          _buildTextField(
-            initialValue: email,
-            label: 'Email',
-            onChanged: (value) => email = value,
-            validator: (value) => value!.isEmpty ? 'El email no puede estar vacío.' : null,
-            keyboardType: TextInputType.emailAddress,
-          ), actualizar?Container():
-          _buildTextField(
-            initialValue: password,
-            label: 'Contraseña',
-            onChanged: (value) => password = value,
-            //validator: (value) => value!.isEmpty ? 'La contraseña no puede estar vacía.' : null,
-            obscureText: true,
-          ),
-          
-          SizedBox(height: 20),
-          Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      if(actualizar&&_formKey.currentState!.validate()&&latitude!=""&&selectedRole!=""&&datebirthday!=""){
-                        Member newMember = Member(name: nombre, datebirthday: datebirthday!, id: id, role: selectedRole!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude));
-                        if(esCarnetizador){
-                          updateCardHolder(Carnetizador(id: id, id_Jefe_Brigada: result!.id));
-                        }
-                        updateMemberById(id, newMember);
-                        if(miembroActual!.id==id){
-                          miembroActual = newMember;
-                        }
-                        esCarnetizador = false;
-                        Mostrar_Finalizado(context, "Se ha actualizado con éxito");
-                      }else if (password!=""&&_formKey.currentState!.validate()&& latitude!=""&&selectedRole!=""&&datebirthday!="") {
-                      registerNewMember(Member(name: nombre, datebirthday: datebirthday!, id: members.last.id+1, role: selectedRole!, contrasena: password, correo: email, telefono: int.parse(telefono), carnet: carnet, latitud: double.parse(latitude), longitud: double.parse(longitude)));
-
-                      if(esCarnetizador){
-                          registerNewCardholder(Carnetizador(id: cardholders.length!=0?cardholders.last.id+1:1, id_Jefe_Brigada: result!.id));
-                      }
-                      
-
-                      Fluttertoast.showToast(
-                          msg: "Finalizado",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.green,
-                          textColor: Colors.white,
-                          fontSize: 16.0
-                      );
-                      esCarnetizador = false;
-                      Mostrar_Finalizado(context, "Se ha registrado con éxito");
-                      } else {
-                        Mostrar_Error(context, "Ingrese todos los campos");
-                      }
-                    },
-                    child: Text(actualizar ? 'Actualizar' : 'Registrar'),
-
-                    style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF1A2946),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
-                        child: CampaignPage())),
-                      );
-                    },
-                    child: Text('Cancelar'),
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-              if (estaCargando)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),  // Agrega padding a los costados
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      SizedBox(
-                        height: 20.0, // Ajusta este valor según el grosor deseado para la barra
-                        child: LinearProgressIndicator(
-                          value: proceso,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Text('${(proceso! * 100).toStringAsFixed(1)}%'),
-                    ],
-                  ),
-                ),
-              ),
-        ],
+        ),
       ),
-    ),
-  ),
-);
-
+    );
   }
 
   Widget _buildDateOfBirthField({
-  required String label,
-  required Function(DateTime?) onChanged,
-  DateTime? initialDate,
-}) {
-  return Column(
-    children: [
-      Container(
-        width: double.infinity, // Esto hará que el botón ocupe todo el ancho disponible
-        child: ElevatedButton(
-          onPressed: () async {
-            datebirthday = await showDatePicker(
-              context: context,
-              initialDate: initialDate ?? DateTime.now(),
-              firstDate: DateTime(1900),
-              lastDate: DateTime.now(),
-            );
+    required String label,
+    required Function(DateTime?) onChanged,
+  }) {
+    return Column(
+      children: [
+        Container(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () async {
+              datebirthday = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
 
-            if (datebirthday != null) {
-              onChanged(datebirthday);
-              setState(() {});
-            }
-          },
-          child: Text(
-            initialDate != null
-                ? "${initialDate.day}/${initialDate.month}/${initialDate.year}"
-                : label,
-            style: TextStyle(color: Colors.white),
-          ),
-          style: ElevatedButton.styleFrom(
-            primary: Color(0xFF1A2946),
+              if (datebirthday != null) {
+                onChanged(datebirthday);
+                setState(() {});
+              }
+            },
+            child: Text(
+              datebirthday != null
+                  ? "${datebirthday.day}/${datebirthday.month}/${datebirthday.year}"
+                  : label,
+              style: TextStyle(color: Colors.white),
+            ),
+            style: ElevatedButton.styleFrom(
+              primary: Color(0xFF1A2946),
+            ),
           ),
         ),
-      ),
-      SizedBox(height: 15),
-    ],
-  );
-}
-
-
+        SizedBox(height: 15),
+      ],
+    );
+  }
 
   Widget _buildTextField({
-  required String label,
-  required Function(String) onChanged,
-  String? Function(String?)? validator,
-  TextInputType keyboardType = TextInputType.text,
-  bool obscureText = false,
-  required String initialValue,
-}) {
-  return Column(
-    children: [
-      TextFormField(
-        enabled: actualizar&&label=="Contraseña" ? false: true,
-        initialValue: initialValue,
-        style: TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.white),
+    required String label,
+    required Function(String) onChanged,
+    String? Function(String?)? validator,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+  }) {
+    return Column(
+      children: [
+        TextFormField(
+          enabled: label == "Contraseña",
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(color: Colors.white),
+          ),
+          onChanged: onChanged,
+          validator: validator,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
         ),
-        onChanged: onChanged,
-        validator: validator,
-        keyboardType: keyboardType,
-        obscureText: obscureText,
-      ),
-      SizedBox(height: 15),
-    ],
-  );
-}
-
+        SizedBox(height: 15),
+      ],
+    );
+  }
 }

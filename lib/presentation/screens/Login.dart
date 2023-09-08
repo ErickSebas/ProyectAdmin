@@ -1,9 +1,11 @@
-import 'package:admin/Models/Profile.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:admin/Models/Profile.dart';
 import 'package:provider/provider.dart';
 import 'HomeClient.dart';
 import 'Campaign.dart';
-import 'package:http/http.dart' as http;
 import 'package:admin/services/services_firebase.dart';
 
 void main() => runApp(MyApp());
@@ -22,43 +24,23 @@ class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  Member? authenticate(String email, String password) {
-    for (var member in members) {
-      if (member.correo == email && member.contrasena == password) {
-        miembroActual = member;
-        return member;  
-      }
-    }
-    return null;
-  }
+  Future<Member?> authenticateHttp(String email, String password) async {
+    final url = Uri.parse(
+        'https://backendapi-398117.rj.r.appspot.com/user?correo=$email&password=$password');
 
-
-  Future<void> authenticateHttp(context) async {
-    final response = await http.post(
-      Uri.parse('https://localhost/login'),
-      body: {
-        'email': emailController.text,
-        'password': passwordController.text,
-      },
-    );
+    final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (context) => CampaignProvider(),
-            child: CampaignPage(),
-          ),
-        ),
-      );
+      final Map<String, dynamic> data = json.decode(response.body);
+      final member = Member.fromJson(data);
+      miembroActual = member;
+      return member;
+    } else if (response.statusCode == 404) {
+      return null; // Usuario no encontrado
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Usuario o Contraseña Incorrecto')),
-      );
+      throw Exception('Error al autenticar el usuario');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,13 +52,13 @@ class LoginPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Image.asset(
-                      "assets/LogoHorizontal.png",
-                      width: MediaQuery.of(context).size.width * 0.8, 
-                    ),
-                    SizedBox(height: 20),
+                "assets/LogoHorizontal.png",
+                width: MediaQuery.of(context).size.width * 0.8,
+              ),
+              SizedBox(height: 20),
               TextField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Correo electronico'),
+                decoration: InputDecoration(labelText: 'Correo electrónico'),
               ),
               SizedBox(height: 20),
               TextField(
@@ -97,27 +79,35 @@ class LoginPage extends StatelessWidget {
                       style: TextStyle(decoration: TextDecoration.underline),
                     ),
                   ),
-                ]
+                ],
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  Member? loggedInMember = authenticate(emailController.text, passwordController.text);
+                onPressed: () async {
+                  final loggedInMember = await authenticateHttp(
+                      emailController.text,
+                      md5
+                          .convert(utf8.encode(passwordController.text))
+                          .toString());
                   if (loggedInMember != null) {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => ChangeNotifierProvider(create: (context) => CampaignProvider(), 
-                      child: CampaignPage())),
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider(
+                          create: (context) => CampaignProvider(),
+                          child: CampaignPage(),
+                        ),
+                      ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Usuario o Contraseña Incorrectos')),
+                      SnackBar(
+                          content: Text('Usuario o Contraseña Incorrectos')),
                     );
                   }
                 },
                 child: Text('Iniciar sesión'),
               ),
-
             ],
           ),
         ),

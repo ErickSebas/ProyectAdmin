@@ -31,15 +31,26 @@ class MyApp extends StatelessWidget {
 }
 
 class CampaignProvider extends ChangeNotifier {
-  //List<String> _campaigns = ["Campaña 1", "Campaña 2", "Campaña 3"];
-  CampaignManager manager = CampaignManager();
   List<Campaign> campaigns1 = campaigns;
 
-  void searchCampaign(String query) {
+  CampaignProvider() {
+    //loadCampaigns();
+  }
+
+  Future<void> loadCampaigns() async {
+    campaigns1 = await fetchCampaigns();
+
+    notifyListeners();
+  }
+
+  void searchCampaign(String query) async {
+    //campaigns1 = await fetchCampaigns();
+
     campaigns1 = campaigns
         .where((campaign) =>
             campaign.nombre.toLowerCase().contains(query.toLowerCase()))
         .toList();
+
     notifyListeners();
   }
 }
@@ -111,7 +122,7 @@ class CampaignPage extends StatelessWidget {
                         Column(
                           children: [
                             Text(
-                              miembroActual!.name,
+                              miembroActual!.names,
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -144,7 +155,10 @@ class CampaignPage extends StatelessWidget {
                                 id: 0,
                                 nombre: "",
                                 descripcion: "",
-                                categoria: ""),
+                                categoria: "",
+                                dateStart: DateTime.now(),
+                                dateEnd: DateTime.now(),
+                                userId: 0),
                           )),
                 );
               },
@@ -155,19 +169,7 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => RegisterBossPage(
-                          initialData: Member(
-                              name: "",
-                              datebirthday: DateTime.now(),
-                              id: 0,
-                              role: "",
-                              contrasena: "",
-                              correo: "",
-                              telefono: 0,
-                              carnet: "",
-                              latitud: 0,
-                              longitud: 0))),
+                  MaterialPageRoute(builder: (context) => RegisterBossPage()),
                 );
               },
             ),
@@ -183,7 +185,10 @@ class CampaignPage extends StatelessWidget {
                                 id: 0,
                                 nombre: "",
                                 descripcion: "",
-                                categoria: ""),
+                                categoria: "",
+                                dateStart: DateTime.now(),
+                                dateEnd: DateTime.now(),
+                                userId: 0),
                           )),
                 );
               },
@@ -279,7 +284,13 @@ class CampaignPage extends StatelessWidget {
             MaterialPageRoute(
                 builder: (context) => RegisterCampaignPage(
                       initialData: Campaign(
-                          id: 0, nombre: "", descripcion: "", categoria: ""),
+                          id: 0,
+                          nombre: "",
+                          descripcion: "",
+                          categoria: "",
+                          dateStart: DateTime.now(),
+                          dateEnd: DateTime.now(),
+                          userId: 0),
                     )),
           );
         },

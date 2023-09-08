@@ -35,14 +35,13 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-
   ProfilePage({required this.member});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Perfil de ${member!.name}"),
+        title: Text("Perfil de ${member!.names}"),
         backgroundColor: Color(0xFF4D6596),
         leading: Builder(
           builder: (context) => IconButton(
@@ -85,7 +84,7 @@ class ProfilePage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      "${member!.name}",
+                      "${member!.names}",
                       style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -113,7 +112,7 @@ class ProfilePage extends StatelessWidget {
                       _buildInfoItem("Carnet: ${member!.carnet}"),
                       _buildInfoItem("Teléfono: ${member!.telefono}"),
                       _buildInfoItem(
-                          "Fecha de Nacimiento: ${member!.datebirthday}"),
+                          "Fecha de Nacimiento: ${member!.fechaNacimiento}"),
                       _buildMap(member!.latitud, member!.longitud),
                       SizedBox(height: 20),
                       Row(
@@ -121,24 +120,13 @@ class ProfilePage extends StatelessWidget {
                         children: [
                           ElevatedButton(
                             onPressed: () {
-                              if(member!.role=="Carnetizador"){
-                                esCarnetizador=true;
+                              if (member!.role == "Carnetizador") {
+                                esCarnetizador = true;
                               }
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => RegisterBossPage(
-                                        initialData: Member(
-                                            name: member!.name,
-                                            datebirthday: member!.datebirthday,
-                                            id: member!.id,
-                                            role: member!.role,
-                                            contrasena: "",
-                                            correo: member!.correo,
-                                            telefono: member!.telefono,
-                                            carnet: member!.carnet,
-                                            latitud: member!.latitud,
-                                            longitud: member!.longitud))),
+                                    builder: (context) => RegisterBossPage()),
                               );
                             },
                             style: ElevatedButton.styleFrom(
@@ -202,33 +190,32 @@ class ProfilePage extends StatelessWidget {
 
   Widget _buildSendEmailButton() {
     return FutureBuilder<bool>(
-        future: sendEmail(),
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-                return CircularProgressIndicator();
-            } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-            } else if (!snapshot.data!) {
-                return Text('No se pudo enviar el correo.');
-            } else {
-                return ElevatedButton(
-                    onPressed: () async {
-                        await Mostrar_Mensaje(context, "Se ha enviado un código a tu correo electrónico.");
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ChangePasswordPage(),
-                            ),
-                        );
-                    },
-                    child: Text("Ir a Cambiar Contraseña"),
-                );
-            }
-        },
+      future: sendEmail(),
+      builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.data!) {
+          return Text('No se pudo enviar el correo.');
+        } else {
+          return ElevatedButton(
+            onPressed: () async {
+              await Mostrar_Mensaje(
+                  context, "Se ha enviado un código a tu correo electrónico.");
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChangePasswordPage(),
+                ),
+              );
+            },
+            child: Text("Ir a Cambiar Contraseña"),
+          );
+        }
+      },
     );
-}
-
-  
+  }
 
   Widget _buildInfoItem(String text) {
     final List<String> parts =
