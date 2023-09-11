@@ -128,7 +128,7 @@ class ProfilePage extends StatelessWidget {
                               if (member!.role == "Carnetizador") {
                                 esCarnetizador = true;
                               }
-                              Navigator.pushReplacement(
+                              Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => RegisterBossPage(isUpdate: true, userData: member)),

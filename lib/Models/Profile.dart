@@ -62,4 +62,19 @@ class Member {
       throw Exception('Failed to load members');
     }
   }
+
+   
 }
+
+Future<Member> getCardByUser(int id) async {
+    final response = await http.get(
+        Uri.parse('http://10.0.2.2:3000/cardholderbyuser/'+id.toString())); 
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final member = Member.fromJson(data);
+      return member;
+    } else {
+      throw Exception('Failed to load members');
+    }
+  }

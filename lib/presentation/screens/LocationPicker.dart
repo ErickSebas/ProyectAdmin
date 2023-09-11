@@ -14,10 +14,12 @@ class _LocationPickerState extends State<LocationPicker> {
   Set<Marker> _markers = {};
   LatLng? initialPosition;
   late GoogleMapController mapController;
+  bool mapCreated = false;
 
-  void _onMapCreated(GoogleMapController controller) {
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
     mapController = controller;
-    _goToUserLocation();
+    await _goToUserLocation();
   }
 
    @override
@@ -37,12 +39,15 @@ class _LocationPickerState extends State<LocationPicker> {
 
 Future<void> _goToUserLocation() async {
   final Position position = await Geolocator.getCurrentPosition();
-  mapController.animateCamera(CameraUpdate.newCameraPosition(
+  await mapController.animateCamera(CameraUpdate.newCameraPosition(
     CameraPosition(
       target: LatLng(position.latitude, position.longitude),
       zoom: 14.5,
     ),
   ));
+  setState(() {
+    mapCreated=true;
+  });
 }
 
 _setSelectedLocation(LatLng location) {
@@ -82,6 +87,14 @@ _setSelectedLocation(LatLng location) {
                 : Navigator.of(context).pop,
           )
         ],
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -103,6 +116,11 @@ _setSelectedLocation(LatLng location) {
           zoom: 5.0,
         ),
       ),
+      if (!mapCreated)
+      Center(
+        child: CircularProgressIndicator(),
+      ),
+      mapCreated?
       Positioned(
           top: 10.0, 
           left: 10.0, 
@@ -113,7 +131,7 @@ _setSelectedLocation(LatLng location) {
             ),
             child: Text("Enviar mi Ubicación Actual"),
           ),
-        ),
+        ):Container(),
         ],
       )
     ); 

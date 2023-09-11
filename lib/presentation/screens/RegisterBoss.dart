@@ -61,24 +61,24 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   }
 
   void Cargar_Datos_Persona() async {
+    idPerson = widget.userData!.id;
     nombre = widget.userData!.names;
     apellido = widget.userData!.lastnames!;
     datebirthday = widget.userData?.fechaNacimiento;
     dateCreation = widget.userData?.fechaCreacion;
     carnet = widget.userData!.carnet;
     telefono = widget.userData!.telefono.toString();
-    if (idRolSeleccionada == 1) {
-      selectedRole == 'Administrador';
-    } else if (idRolSeleccionada == 2) {
-      selectedRole == 'Jefe de brigada';
-    } else if (idRolSeleccionada == 3) {
-      selectedRole == 'Carnetizador';
-    } else {
-      // Puedes manejar cualquier otro caso aquí, si es necesario.
-    }
+    selectedRole = widget.userData!.role;
+
     latitude = widget.userData!.latitud.toString();
     longitude = widget.userData!.longitud.toString();
     email = widget.userData!.correo;
+    if(esCarnetizador){
+      jefeDeCarnetizador = await getCardByUser(widget.userData!.id);
+      nameJefe = jefeDeCarnetizador!.names;
+      idJefe = jefeDeCarnetizador!.id;
+    }
+    
     setState(() {});
   }
 
@@ -87,7 +87,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
         Uri.parse('https://backendapi-398117.rj.r.appspot.com/register');
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
-    } else if (selectedRole == 'Jefe de brigada') {
+    } else if (selectedRole == 'Jefe de Brigada') {
       idRolSeleccionada = 2;
     } else if (selectedRole == 'Carnetizador') {
       idRolSeleccionada = 3;
@@ -123,11 +123,73 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     }
   }
 
+  Future<void> updateUser() async {
+    final url =
+        Uri.parse('http://10.0.2.2:3000/update/'+idPerson.toString()); //
+    if (selectedRole == 'Administrador') {
+      idRolSeleccionada = 1;
+    } else if (selectedRole == 'Jefe de Brigada') {
+      idRolSeleccionada = 2;
+    } else if (selectedRole == 'Carnetizador') {
+      idRolSeleccionada = 3;
+    } else {
+      // Puedes manejar cualquier otro caso aquí, si es necesario.
+    }
+    final response = await http.put(
+      url,
+      body: jsonEncode({
+        'id' : idPerson,
+        'Nombres': nombre,
+        'Apellidos': apellido,
+        'FechaNacimiento': datebirthday.toIso8601String(),
+        'Carnet': carnet,
+        'Telefono': telefono,
+        'IdRol': idRolSeleccionada,
+        'Latitud': latitude,
+        'Longitud': longitude,
+        'Correo': email,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      // Registro exitoso
+      
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrar el usuario')),
+      );
+    }
+  }
+
   Future<void> registerJefeCarnetizador() async {
     final url = Uri.parse(
         'https://backendapi-398117.rj.r.appspot.com/registerjefecarnetizador');
 
     final response = await http.post(
+      url,
+      body: jsonEncode({
+        'idPerson': idPerson, //
+
+        'idJefeCampaña': idJefe,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      // Registro exitoso
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrar el usuario')),
+      );
+    }
+  }
+
+  Future<void> updateJefeCarnetizador() async {
+    final url = Uri.parse(
+        'http://10.0.2.2:3000/updatejefecarnetizador');
+
+    final response = await http.put(
       url,
       body: jsonEncode({
         'idPerson': idPerson, //
@@ -174,6 +236,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               esCarnetizador = false;
+              widget.isUpdate==false?
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -182,7 +245,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     child: CampaignPage(),
                   ),
                 ),
-              );
+              ):Navigator.pop(context);
             },
           ),
         ),
@@ -241,7 +304,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 dropdownColor: Colors.grey[850],
                 style: TextStyle(color: Colors.white),
                 items: <String>[
-                  'Jefe de brigada',
+                  'Jefe de Brigada',
                   'Carnetizador',
                   'Administrador'
                 ].map((String value) {
@@ -335,6 +398,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     value!.isEmpty ? 'El email no puede estar vacío.' : null,
                 keyboardType: TextInputType.emailAddress,
               ),
+              widget.isUpdate?Container():
               _buildTextField(
                 initialData: "",
                 label: 'Contraseña',
@@ -350,25 +414,45 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                       _formKey.currentState!.validate() &&
                       latitude != '' &&
                       selectedRole != '' &&
-                      datebirthday != null &&
-                      password != "" &&
+                      datebirthday != null  &&
                       nameJefe != '') {
-                    await registerUser();
-                    idPerson = await getNextIdPerson();
-                    await registerJefeCarnetizador();
-                    esCarnetizador = false;
-                    Mostrar_Finalizado(context, "Registro Completado");
+
+                      if(widget.isUpdate){
+
+                        await updateUser();
+                        await updateJefeCarnetizador();
+                        Mostrar_Finalizado(context, "Actualización Completado");
+                      }else if(password != ""){
+                        dateCreation = new DateTime.now();
+                        status = 1;
+                        await registerUser();
+                        idPerson = await getNextIdPerson();
+                        await registerJefeCarnetizador();
+                        Mostrar_Finalizado(context, "Registro Completado");
+                      }
+                      esCarnetizador = false;
+                      
+
                   } else {
                     if (esCarnetizador == false &&
                         _formKey.currentState!.validate() &&
                         latitude != '' &&
                         selectedRole != '' &&
-                        datebirthday != null &&
-                        password != "") {
-                      // Llama a la función para registrar al usuario
-                      dateCreation = new DateTime.now();
-                      status = 1;
-                      registerUser();
+                        datebirthday != null 
+                        ) {
+                      
+                      if(widget.isUpdate){
+                        await updateUser();
+                        Mostrar_Finalizado(context, "Actualización Completado");
+                      }else if(password != ""){
+                        dateCreation = new DateTime.now();
+                        status = 1;
+                        await registerUser();
+                        Mostrar_Finalizado(context, "Registro Completado");
+                      }
+
+                      esCarnetizador = false;
+                      
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Ingrese todos los campos')),
@@ -376,7 +460,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     }
                   }
                 },
-                child: Text('Registrar'),
+                child: Text(widget.isUpdate?'Actualizar':'Registrar'),
                 style: ElevatedButton.styleFrom(
                   primary: Color(0xFF1A2946),
                 ),
