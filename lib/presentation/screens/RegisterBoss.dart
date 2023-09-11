@@ -1,3 +1,6 @@
+import 'package:admin/Models/Cardholder.dart';
+import 'package:admin/presentation/screens/List_members.dart';
+import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -44,12 +47,15 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   String email = '';
   String password = '';
   int status = 1;
-  bool esCarnetizador = false;
   int? idRolSeleccionada;
+  String nameJefe = "";
+  int idJefe = 0;
+  int idPerson = 0;
+  Member? jefeDeCarnetizador;
 
   void initState() {
     super.initState();
-    if (widget.userData?.id != "") {
+    if (widget.userData?.id != null) {
       Cargar_Datos_Persona();
     }
   }
@@ -76,10 +82,9 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     setState(() {});
   }
 
-  void registerUser() async {
+  Future<void> registerUser() async {
     final url =
         Uri.parse('https://backendapi-398117.rj.r.appspot.com/register');
-
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
     } else if (selectedRole == 'Jefe de brigada') {
@@ -110,15 +115,30 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
     if (response.statusCode == 200) {
       // Registro exitoso
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ChangeNotifierProvider(
-            create: (context) => CampaignProvider(),
-            child: CampaignPage(),
-          ),
-        ),
+      
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al registrar el usuario')),
       );
+    }
+  }
+
+  Future<void> registerJefeCarnetizador() async {
+    final url = Uri.parse(
+        'https://backendapi-398117.rj.r.appspot.com/registerjefecarnetizador');
+
+    final response = await http.post(
+      url,
+      body: jsonEncode({
+        'idPerson': idPerson, //
+
+        'idJefeCampaña': idJefe,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      // Registro exitoso
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al registrar el usuario')),
@@ -153,6 +173,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
           builder: (context) => IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
+              esCarnetizador = false;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -250,9 +271,23 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         Container(
                           width: double.infinity,
                           child: ElevatedButton(
-                            child: Text("Seleccionar"),
+                            child:
+                                Text(nameJefe == '' ? "Seleccionar" : nameJefe),
                             onPressed: () async {
-                              // Agregar aquí la lógica para seleccionar un jefe
+                              esCarnetizador = true;
+
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ListMembersScreen()),
+                              );
+
+                              if (result != null) {
+                                jefeDeCarnetizador = result;
+                                nameJefe = jefeDeCarnetizador!.names;
+                                idJefe = jefeDeCarnetizador!.id;
+                              }
+                              setState(() {});
                             },
                             style: ElevatedButton.styleFrom(
                               primary: Color(0xFF1A2946),
@@ -309,10 +344,23 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  if (esCarnetizador) {
-                    // Agregar aquí la lógica para seleccionar un jefe
+                  dateCreation = new DateTime.now();
+                  status = 1;
+                  if (esCarnetizador &&
+                      _formKey.currentState!.validate() &&
+                      latitude != '' &&
+                      selectedRole != '' &&
+                      datebirthday != null &&
+                      password != "" &&
+                      nameJefe != '') {
+                    await registerUser();
+                    idPerson = await getNextIdPerson();
+                    await registerJefeCarnetizador();
+                    esCarnetizador = false;
+                    Mostrar_Finalizado(context, "Registro Completado");
                   } else {
-                    if (_formKey.currentState!.validate() &&
+                    if (esCarnetizador == false &&
+                        _formKey.currentState!.validate() &&
                         latitude != '' &&
                         selectedRole != '' &&
                         datebirthday != null &&

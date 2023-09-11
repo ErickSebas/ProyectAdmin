@@ -42,6 +42,7 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
   @override
   void initState() {
     super.initState();
+    selectedRole = esCarnetizador ? "Jefe de Brigada" : "Todos";
     members = fetchMembers();
   }
 

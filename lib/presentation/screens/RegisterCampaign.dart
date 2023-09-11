@@ -241,7 +241,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                       if(actualizar&&_formKey.currentState!.validate() && (dateStart!.isBefore(dateEnd!)||dateStart!.isAtSameMomentAs(dateEnd!)) ){
                         Campaign updatedCampaign = Campaign(id: id, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
                         updateCampaignById(updatedCampaign);
-                        Mostrar_Finalizado(context, "Se ha actualizado con éxito");
+                        
                         if(kml!=''){
                           //Actualizar Ubicaciones
                           setState(() {
@@ -257,14 +257,17 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                               estaCargando = false;
                           });
                         }
+
+                        Mostrar_Finalizado(context, "Se ha actualizado con éxito");
                       }else if (_formKey.currentState!.validate()&&categoria!=null&&kml!=''&& (dateStart!.isBefore(dateEnd!)||dateStart!.isAtSameMomentAs(dateEnd!)) ){
                         //Registrar
-                      Campaign newCampaign = Campaign(id: campaigns.last.id+1, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
+                      int idNextCamp=await getNextIdCampana()+1;
+                      Campaign newCampaign = Campaign(id: idNextCamp, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
                       registerNewCampaign(newCampaign);
                       setState(() {
                         estaCargando = true;
                       });
-                      await Subir_Json_Firebase(campaigns.last.id+1,Ubicaciones, (double valorProceso) {
+                      await Subir_Json_Firebase(idNextCamp,Ubicaciones, (double valorProceso) {
                           setState(() {
                               proceso = valorProceso;
                           });
