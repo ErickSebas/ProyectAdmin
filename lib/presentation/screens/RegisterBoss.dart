@@ -1,3 +1,6 @@
+import 'package:admin/Models/Cardholder.dart';
+import 'package:admin/presentation/screens/List_members.dart';
+import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -35,23 +38,58 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   String longitude = '';
   String email = '';
   String password = '';
-  bool esCarnetizador = false;
+  Member? jefeDeCarnetizador;
+  String nameJefe='';
+  int idJefe=0;
+  int idPerson=0;
+  String apellido = '';
+  var dateCreation;
 
-  void registerUser() async {
+  int status = 1;
+
+  int? idRolSeleccionada;
+
+ Future<void> registerUser() async {
     final url =
         Uri.parse('https://backendapi-398117.rj.r.appspot.com/register');
+    if (selectedRole == 'Administrador') {
+      idRolSeleccionada = 1;
+    } else if (selectedRole == 'Jefe de brigada') {
+      idRolSeleccionada = 2;
+    } else if (selectedRole == 'Carnetizador') {
+      idRolSeleccionada = 3;
+    } else {
+      // Puedes manejar cualquier otro caso aquí, si es necesario.
+    }
+
     final response = await http.post(
       url,
       body: jsonEncode({
         'Nombres': nombre,
+        'Apellidos': apellido,
         'FechaNacimiento': datebirthday.toIso8601String(),
+        'FechaCreacion': dateCreation.toIso8601String(),
         'Carnet': carnet,
         'Telefono': telefono,
-        'IdRol': selectedRole,
+        'IdRol': idRolSeleccionada,
         'Latitud': latitude,
         'Longitud': longitude,
         'Correo': email,
         'Password': password,
+        'Status': status,
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+ }
+
+  Future<void> registerJefeCarnetizador() async {
+    final url =
+        Uri.parse('http://10.0.2.2:3000/registerjefecarnetizador');
+    final response = await http.post(
+      url,
+      body: jsonEncode({
+        'idPerson': idPerson,//
+        'idJefeCampaña': idJefe,
       }),
       headers: {'Content-Type': 'application/json'},
     );
@@ -97,6 +135,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
           builder: (context) => IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
+              esCarnetizador = false;
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -126,6 +165,12 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               _buildTextField(
                 label: 'Nombre',
                 onChanged: (value) => nombre = value,
+                validator: (value) =>
+                    value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
+              ),
+              _buildTextField(
+                label: 'Apellidos',
+                onChanged: (value) => apellido = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
               ),
@@ -184,9 +229,23 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         Container(
                           width: double.infinity,
                           child: ElevatedButton(
-                            child: Text("Seleccionar"),
+                            child: Text(nameJefe==''?"Seleccionar":nameJefe),
                             onPressed: () async {
-                              // Agregar aquí la lógica para seleccionar un jefe
+                              esCarnetizador=true;
+                              
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => ListMembersScreen()),
+                              );
+
+                              if (result != null) {
+                                jefeDeCarnetizador = result;
+                                nameJefe = jefeDeCarnetizador!.names;
+                                idJefe = jefeDeCarnetizador!.id;
+                              }
+                              setState(() {
+                                
+                              });
                             },
                             style: ElevatedButton.styleFrom(
                               primary: Color(0xFF1A2946),
@@ -241,16 +300,29 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  if (esCarnetizador) {
-                    // Agregar aquí la lógica para seleccionar un jefe
+                  dateCreation = new DateTime.now();
+                  status = 1;
+                  if (esCarnetizador&&_formKey.currentState!.validate() &&
+                        latitude != '' &&
+                        selectedRole != '' &&
+                        datebirthday != null &&
+                        password != ""&&nameJefe!='') {
+                    idPerson = await getNextIdPerson() +1;
+                    await registerUser();
+                    await registerJefeCarnetizador();
+                    esCarnetizador=false;
+                    Mostrar_Finalizado(context, "Registro Completado");
                   } else {
-                    if (_formKey.currentState!.validate() &&
+                    if (esCarnetizador==false&&_formKey.currentState!.validate() &&
                         latitude != '' &&
                         selectedRole != '' &&
                         datebirthday != null &&
                         password != "") {
+
                       // Llama a la función para registrar al usuario
-                      registerUser();
+                      await registerUser();
+                      esCarnetizador=false;
+                      Mostrar_Finalizado(context, "Registro Completado");
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Ingrese todos los campos')),

@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
 class Carnetizador {
 
   late int id;
@@ -16,3 +20,15 @@ final List<Carnetizador> cardholders = [
   Carnetizador(id: 5, id_Jefe_Brigada: 4),
   Carnetizador(id: 6, id_Jefe_Brigada: 4),
 ];
+
+Future<int> getNextIdPerson() async {
+final response = await http.get(Uri.parse('http://10.0.2.2:3000/nextidperson')); //////
+  if (response.statusCode == 200) {
+    List<dynamic> jsonResponse = json.decode(response.body);
+    print(jsonResponse[0]['AUTO_INCREMENT']);
+    var res = jsonResponse[0]['AUTO_INCREMENT'];
+    return res;
+  } else {
+    throw Exception('Failed to load id');
+  }
+}
