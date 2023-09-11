@@ -11,9 +11,12 @@ import 'package:mailto/mailto.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
+import 'dart:developer';
+
 
 class ProfilePage extends StatelessWidget {
   final Member? member;
+  
 
   Future<bool> sendEmail() async {
     final smtpServer = gmail('bdcbba96@gmail.com', 'ehbh ugsw srnj jxsf');
@@ -35,7 +38,9 @@ class ProfilePage extends StatelessWidget {
     }
   }
 
-  ProfilePage({required this.member});
+  ProfilePage({this.member});
+  
+  
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +131,7 @@ class ProfilePage extends StatelessWidget {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => RegisterBossPage()),
+                                    builder: (context) => RegisterBossPage(isUpdate: true, userData: member)),
                               );
                             },
                             style: ElevatedButton.styleFrom(

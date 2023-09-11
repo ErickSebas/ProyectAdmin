@@ -13,13 +13,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: RegisterBossPage(),
+      home: RegisterBossPage(
+        isUpdate: false,
+      ),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class RegisterBossPage extends StatefulWidget {
+  final Member? userData;
+  late final bool isUpdate;
+
+  RegisterBossPage({required this.isUpdate, this.userData});
   @override
   _RegisterBossPageState createState() => _RegisterBossPageState();
 }
@@ -27,7 +33,9 @@ class RegisterBossPage extends StatefulWidget {
 class _RegisterBossPageState extends State<RegisterBossPage> {
   final _formKey = GlobalKey<FormState>();
   String nombre = '';
+  String apellido = '';
   var datebirthday;
+  var dateCreation;
   String carnet = '';
   String telefono = '';
   String? selectedRole = 'Administrador';
@@ -35,23 +43,67 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   String longitude = '';
   String email = '';
   String password = '';
+  int status = 1;
   bool esCarnetizador = false;
+  int? idRolSeleccionada;
+
+  void initState() {
+    super.initState();
+    if (widget.userData?.id != "") {
+      Cargar_Datos_Persona();
+    }
+  }
+
+  void Cargar_Datos_Persona() async {
+    nombre = widget.userData!.names;
+    apellido = widget.userData!.lastnames!;
+    datebirthday = widget.userData?.fechaNacimiento;
+    dateCreation = widget.userData?.fechaCreacion;
+    carnet = widget.userData!.carnet;
+    telefono = widget.userData!.telefono.toString();
+    if (idRolSeleccionada == 1) {
+      selectedRole == 'Administrador';
+    } else if (idRolSeleccionada == 2) {
+      selectedRole == 'Jefe de brigada';
+    } else if (idRolSeleccionada == 3) {
+      selectedRole == 'Carnetizador';
+    } else {
+      // Puedes manejar cualquier otro caso aquí, si es necesario.
+    }
+    latitude = widget.userData!.latitud.toString();
+    longitude = widget.userData!.longitud.toString();
+    email = widget.userData!.correo;
+    setState(() {});
+  }
 
   void registerUser() async {
     final url =
         Uri.parse('https://backendapi-398117.rj.r.appspot.com/register');
+
+    if (selectedRole == 'Administrador') {
+      idRolSeleccionada = 1;
+    } else if (selectedRole == 'Jefe de brigada') {
+      idRolSeleccionada = 2;
+    } else if (selectedRole == 'Carnetizador') {
+      idRolSeleccionada = 3;
+    } else {
+      // Puedes manejar cualquier otro caso aquí, si es necesario.
+    }
     final response = await http.post(
       url,
       body: jsonEncode({
         'Nombres': nombre,
+        'Apellidos': apellido,
         'FechaNacimiento': datebirthday.toIso8601String(),
+        'FechaCreacion': dateCreation.toIso8601String(),
         'Carnet': carnet,
         'Telefono': telefono,
-        'IdRol': selectedRole,
+        'IdRol': idRolSeleccionada,
         'Latitud': latitude,
         'Longitud': longitude,
         'Correo': email,
         'Password': password,
+        'Status': status,
       }),
       headers: {'Content-Type': 'application/json'},
     );
@@ -87,11 +139,15 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.isUpdate
+        ? 'Actualizar Usuario'
+        : 'Registrar Usuario'; // Título dinámico
+
     return Scaffold(
       backgroundColor: Color(0xFF4D6596),
       appBar: AppBar(
         backgroundColor: Color(0xFF4D6596),
-        title: Text('Registrar Usuario', style: TextStyle(color: Colors.white)),
+        title: Text(title, style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
@@ -124,8 +180,16 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 ),
               ),
               _buildTextField(
-                label: 'Nombre',
+                initialData: nombre,
+                label: 'Nombres',
                 onChanged: (value) => nombre = value,
+                validator: (value) =>
+                    value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
+              ),
+              _buildTextField(
+                initialData: apellido,
+                label: 'Apellidos',
+                onChanged: (value) => apellido = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
               ),
@@ -136,12 +200,14 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 onChanged: (value) => datebirthday = value,
               ),
               _buildTextField(
+                initialData: carnet,
                 label: 'Carnet',
                 onChanged: (value) => carnet = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El carnet no puede estar vacío.' : null,
               ),
               _buildTextField(
+                initialData: telefono,
                 label: 'Teléfono',
                 onChanged: (value) => telefono = value,
                 validator: (value) =>
@@ -227,6 +293,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 ),
               ),
               _buildTextField(
+                initialData: email,
                 label: 'Email',
                 onChanged: (value) => email = value,
                 validator: (value) =>
@@ -234,6 +301,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 keyboardType: TextInputType.emailAddress,
               ),
               _buildTextField(
+                initialData: "",
                 label: 'Contraseña',
                 onChanged: (value) => password = value,
                 obscureText: true,
@@ -250,6 +318,8 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         datebirthday != null &&
                         password != "") {
                       // Llama a la función para registrar al usuario
+                      dateCreation = new DateTime.now();
+                      status = 1;
                       registerUser();
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -309,6 +379,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   }
 
   Widget _buildTextField({
+    required String initialData,
     required String label,
     required Function(String) onChanged,
     String? Function(String?)? validator,
@@ -318,6 +389,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     return Column(
       children: [
         TextFormField(
+          initialValue: initialData,
           style: TextStyle(color: Colors.white),
           decoration: InputDecoration(
             labelText: label,

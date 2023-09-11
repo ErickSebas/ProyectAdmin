@@ -169,7 +169,7 @@ class CampaignPage extends StatelessWidget {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterBossPage()),
+                  MaterialPageRoute(builder: (context) => RegisterBossPage(isUpdate: false,)),
                 );
               },
             ),
