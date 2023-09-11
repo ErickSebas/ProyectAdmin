@@ -318,7 +318,6 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     return Column(
       children: [
         TextFormField(
-          enabled: label == "Contraseña",
           style: TextStyle(color: Colors.white),
           decoration: InputDecoration(
             labelText: label,
