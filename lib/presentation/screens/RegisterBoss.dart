@@ -125,7 +125,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   Future<void> updateUser() async {
     final url =
-        Uri.parse('http://10.0.2.2:3000/update/'+idPerson.toString()); //
+        Uri.parse('https://backendapi-398117.rj.r.appspot.com/update/'+idPerson.toString()); //
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
     } else if (selectedRole == 'Jefe de Brigada') {
@@ -160,6 +160,18 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
         SnackBar(content: Text('Error al registrar el usuario')),
       );
     }
+
+    if(miembroActual!.id==widget.userData!.id){
+      miembroActual!.names= nombre;
+      miembroActual!.lastnames= apellido;
+      miembroActual!.fechaNacimiento= datebirthday;
+      miembroActual!.carnet= carnet;
+      miembroActual!.telefono= int.parse(telefono);
+      miembroActual!.role= selectedRole!;
+      miembroActual!.latitud= double.parse(latitude);
+      miembroActual!.longitud= double.parse(longitude);
+      miembroActual!.correo= email;
+    }
   }
 
   Future<void> registerJefeCarnetizador() async {
@@ -187,7 +199,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   Future<void> updateJefeCarnetizador() async {
     final url = Uri.parse(
-        'http://10.0.2.2:3000/updatejefecarnetizador');
+        'https://backendapi-398117.rj.r.appspot.com/updatejefecarnetizador');
 
     final response = await http.put(
       url,
@@ -422,6 +434,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         await updateUser();
                         await updateJefeCarnetizador();
                         Mostrar_Finalizado(context, "Actualización Completado");
+                        
                       }else if(password != ""){
                         dateCreation = new DateTime.now();
                         status = 1;
