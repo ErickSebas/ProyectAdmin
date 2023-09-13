@@ -11,6 +11,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:admin/Models/ChatModel.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/Models/Ubication.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,6 +33,7 @@ double? proceso = 0.0;
 Member? miembroActual;
 bool esCarnetizador = false;
 int idCamp = 0;
+List<ChatMessage> messages = [];
 
 // Método guardar Archivo JSON
 Future<File> _saveJsonInStorage(String jsonData) async {

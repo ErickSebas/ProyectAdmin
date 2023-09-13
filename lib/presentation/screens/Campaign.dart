@@ -1,9 +1,11 @@
+import 'package:admin/Models/ChatModel.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/Accounts.dart';
 import 'package:admin/presentation/screens/List_members.dart';
 import 'package:admin/presentation/screens/Login.dart';
 import 'package:admin/presentation/screens/ProfilePage.dart';
 import 'package:admin/presentation/screens/RegisterBoss.dart';
+import 'package:admin/presentation/screens/ChatPage.dart';
 import 'package:admin/presentation/screens/RegisterCampaign.dart';
 import 'package:admin/presentation/screens/RegisterCardholders.dart';
 import 'package:admin/services/services_firebase.dart';
@@ -176,20 +178,12 @@ class CampaignPage extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.message),
               title: Text('Mensaje'),
-              onTap: () {
+              onTap: () async {
+                messages = await fetchMessage();
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => RegisterCampaignPage(
-                            initialData: Campaign(
-                                id: 0,
-                                nombre: "",
-                                descripcion: "",
-                                categoria: "",
-                                dateStart: DateTime.now(),
-                                dateEnd: DateTime.now(),
-                                userId: 0),
-                          )),
+                      builder: (context) => ChatPage()),
                 );
               },
             ),
