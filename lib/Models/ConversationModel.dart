@@ -8,9 +8,12 @@ class Chat {
   final int idPerson;
   final int idPersonDestino;
   final DateTime fechaActualizacion;
-  
 
-  Chat({required this.idChats,required this.idPerson, required this.idPersonDestino,required this.fechaActualizacion});
+  Chat(
+      {required this.idChats,
+      required this.idPerson,
+      required this.idPersonDestino,
+      required this.fechaActualizacion});
 
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
@@ -22,9 +25,10 @@ class Chat {
   }
 }
 
-  Future<List<Chat>> fetchChats() async {
-  final response = await http
-      .get(Uri.parse('http://10.0.2.2:3000/getchats/'+miembroActual!.id.toString()));
+Future<List<Chat>> fetchChats() async {
+  final response = await http.get(Uri.parse(
+      'https://backendapi-398117.rj.r.appspot.com/getchats/' +
+          miembroActual!.id.toString()));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Chat.fromJson(data)).toList();
@@ -33,9 +37,10 @@ class Chat {
   }
 }
 
-  Future<List<dynamic>> fetchNamesPersonDestino(int idPersonDestino) async {
-  final response = await http
-      .get(Uri.parse('http://10.0.2.2:3000/getnamespersondestino/'+idPersonDestino.toString()));
+Future<List<dynamic>> fetchNamesPersonDestino(int idPersonDestino) async {
+  final response = await http.get(Uri.parse(
+      'https://backendapi-398117.rj.r.appspot.com/getnamespersondestino/' +
+          idPersonDestino.toString()));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse;
@@ -43,5 +48,3 @@ class Chat {
     throw Exception('Failed to load chats');
   }
 }
-
-
