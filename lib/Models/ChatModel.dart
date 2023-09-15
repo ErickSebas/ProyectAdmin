@@ -5,23 +5,23 @@ import 'package:http/http.dart' as http;
 
 class ChatMessage {
   final int idPerson;
-  final int idPersonDestino;
   final String mensaje;
+  final int idChat;
 
-  ChatMessage({required this.idPerson,required this.idPersonDestino,required this.mensaje});
+  ChatMessage({required this.idPerson,required this.mensaje, required this.idChat});
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
       idPerson: json['idPerson'],
-      idPersonDestino: json['idPersonDestino'],
       mensaje: json['mensaje'],
+      idChat: json['idChat'],
     );
   }
 }
 
-  Future<List<ChatMessage>> fetchMessage() async {
+  Future<List<ChatMessage>> fetchMessage(int idChat) async {
   final response = await http
-      .get(Uri.parse('http://192.168.14.112:3000/getmessage/'+miembroActual!.id.toString()));
+      .get(Uri.parse('http://10.0.2.2:3000/getmessage/'+idChat.toString())); //192.168.14.112
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => ChatMessage.fromJson(data)).toList();

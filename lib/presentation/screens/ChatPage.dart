@@ -1,3 +1,4 @@
+import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
@@ -19,12 +20,15 @@ class ChatApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: ChatPage(),
+      home: ChatPage(idChat: 0, nombreChat: '',),
     );
   }
 }
 
 class ChatPage extends StatefulWidget {
+  final int idChat;
+  final String nombreChat;
+  ChatPage({required this.idChat, required this.nombreChat});
   @override
   _ChatPageState createState() => _ChatPageState();
 
@@ -40,7 +44,7 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     
-    socket = IO.io('http://192.168.14.112:3000', <String, dynamic>{
+    socket = IO.io('http://10.0.2.2:3000', <String, dynamic>{ //192.168.14.112
       'transports': ['websocket'],
       'autoConnect': false,
     });
@@ -53,19 +57,22 @@ class _ChatPageState extends State<ChatPage> {
     socket.onError((data) => print("Error: $data"));
 
 
-    socket.on('chat message', (data) {
-      ChatMessage chat = ChatMessage(idPerson: miembroActual!.id, idPersonDestino: 2, mensaje: data);
-      
-      setState(() {
-        messages.add(chat);
-      });
+    socket.on('chat message', (data) async {
+      //ChatMessage chat = ChatMessage(idPerson: miembroActual!.id, mensaje: data, idChat: widget.idChat);
+      int chatId = widget.idChat;
+      List<ChatMessage>messagesNew = await fetchMessage(chatId);
+      if (mounted) {
+        setState(() {
+          messages = messagesNew;
+        });
+      }
     });
   }
 
 
 
-  Future<void> sendMessage(int idPerson, int idPersonDestino, String mensaje) async {
-  final url = 'http://192.168.14.112:3000/sendmessage';
+  Future<void> sendMessage(int idPerson, String mensaje) async {
+  final url = 'http://10.0.2.2:3000/sendmessage';
   final response = await http.post(
     Uri.parse(url),
     headers: {
@@ -73,8 +80,8 @@ class _ChatPageState extends State<ChatPage> {
     },
     body: json.encode({
       'idPerson': idPerson,
-      'idPersonDestino': idPersonDestino,
       'mensaje': mensaje,
+      'idChat': widget.idChat,
     }),
   );
 
@@ -95,21 +102,14 @@ Widget build(BuildContext context) {
     backgroundColor: Color(0xFF4D6596),
     appBar: AppBar(
         backgroundColor: Color(0xFF4D6596),
-        title: Text("Chat Soporte", style: TextStyle(color: Colors.white)),
+        title: Text(widget.nombreChat, style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider(
-                    create: (context) => CampaignProvider(),
-                    child: CampaignPage(),
-                  ),
-                ),
-              );
+              
+              Navigator.pop(context);
             },
           ),
         ),
@@ -183,11 +183,11 @@ Widget build(BuildContext context) {
               ),
               IconButton(
                 icon: Icon(Icons.send, color: Colors.white),
-                onPressed: () {
+                onPressed: () async {
                   if (_controller.text.isNotEmpty) 
                   {   
-                    sendMessage(miembroActual!.id, 2, _controller.text);
-                    socket.emit('chat message', _controller.text);
+                    await sendMessage(miembroActual!.id, _controller.text);
+                    //socket.emit('chat message', _controller.text);
                     _controller.clear();
                   }
                 },
