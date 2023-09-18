@@ -10,9 +10,11 @@
 
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:admin/presentation/screens/Login.dart';
+import 'package:admin/services/services_firebase.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -24,6 +26,20 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
+    socket =
+        IO.io('http://10.0.2.2:3000', <String, dynamic>{
+      //192.168.14.112
+      'transports': ['websocket'],
+      'autoConnect': false,
+    });
+
+    socket.connect();
+    socket.onConnect((_) {
+      print('Conectado');
+    });
+    socket.onConnectError((data) => print("Error de conexión: $data"));
+    socket.onError((data) => print("Error: $data"));
+
     super.initState();
     Navegar_Pantalla_Main();
   }

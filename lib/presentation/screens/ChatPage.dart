@@ -37,7 +37,9 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  late IO.Socket socket;
+  ScrollController _scrollController = ScrollController();
+  bool isLoadingMessages=false;
+
 
   TextEditingController _controller = TextEditingController();
 
@@ -45,34 +47,34 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
 
-    socket =
-        IO.io('https://backendapi-398117.rj.r.appspot.com', <String, dynamic>{
-      //192.168.14.112
-      'transports': ['websocket'],
-      'autoConnect': false,
+    fetchMessage(widget.idChat).then((value) => {
+      setState((){
+        messages = value;
+        messages = messages.reversed.toList();
+        isLoadingMessages=true;
+      })
     });
-
-    socket.connect();
-    socket.onConnect((_) {
-      print('Conectado');
-    });
-    socket.onConnectError((data) => print("Error de conexión: $data"));
-    socket.onError((data) => print("Error: $data"));
-
+    
+  
     socket.on('chat message', (data) async {
       //ChatMessage chat = ChatMessage(idPerson: miembroActual!.id, mensaje: data, idChat: widget.idChat);
       int chatId = widget.idChat;
-      List<ChatMessage> messagesNew = await fetchMessage(chatId);
       if (mounted) {
         setState(() {
-          messages = messagesNew;
+          messages.insert(0, ChatMessage(idPerson: data[0], mensaje: data[1], idChat: chatId));
         });
+        _scrollController.animateTo(
+          0.0,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
+      
     });
   }
 
   Future<void> sendMessage(int idPerson, String mensaje) async {
-    final url = 'https://backendapi-398117.rj.r.appspot.com/sendmessage';
+    final url = 'http://10.0.2.2:3000/sendmessage';
     final response = await http.post(
       Uri.parse(url),
       headers: {
@@ -92,7 +94,6 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    socket.disconnect();
     super.dispose();
   }
 
@@ -113,10 +114,12 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ),
       ),
-      body: Column(
+      body: isLoadingMessages? Column(
         children: <Widget>[
           Expanded(
             child: ListView.builder(
+              reverse: true,
+              controller: _scrollController,
               padding: EdgeInsets.all(10.0),
               itemCount: messages.length,
               itemBuilder: (context, index) {
@@ -131,6 +134,7 @@ class _ChatPageState extends State<ChatPage> {
                       messages[index].idPerson != miembroActual!.id
                           ? Container()
                           : Container(),
+                      
                       Card(
                         color: messages[index].idPerson == miembroActual!.id
                             ? Colors.blue
@@ -197,7 +201,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           )
         ],
-      ),
+      ):Center(child: CircularProgressIndicator(),),
     );
   }
 }

@@ -37,6 +37,7 @@ class MyApp extends StatelessWidget {
 class CampaignProvider extends ChangeNotifier {
   List<Campaign> campaigns1 = campaigns;
 
+
   CampaignProvider() {
     //loadCampaigns();
   }
@@ -181,8 +182,7 @@ class CampaignPage extends StatelessWidget {
               leading: Icon(Icons.message),
               title: Text('Mensaje'),
               onTap: () async {
-                namesChats = await fetchNamesPersonDestino(miembroActual!.id);
-                chats = await fetchChats();
+                
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -219,6 +219,8 @@ class CampaignPage extends StatelessWidget {
                 leading: Icon(Icons.logout),
                 title: Text('Cerrar Sesión'),
                 onTap: () {
+                  chats.clear();
+                  namesChats.clear();
                   miembroActual = null;
                   Navigator.pushReplacement(
                     context,

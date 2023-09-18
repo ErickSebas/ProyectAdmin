@@ -11,6 +11,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:io';
 import 'package:admin/Models/ChatModel.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/Models/Profile.dart';
@@ -25,6 +26,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:admin/presentation/screens/Campaign.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 
 
@@ -38,6 +40,7 @@ List<ChatMessage> messages = [];
 List<Chat> chats = [];
 List<dynamic> namesChats=[];
 int idChatActual=0;
+late IO.Socket socket;
 
 
 // Método guardar Archivo JSON

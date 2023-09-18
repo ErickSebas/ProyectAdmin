@@ -27,7 +27,7 @@ class Chat {
 
 Future<List<Chat>> fetchChats() async {
   final response = await http.get(Uri.parse(
-      'https://backendapi-398117.rj.r.appspot.com/getchats/' +
+      'http://10.0.2.2:3000/getchats/' +
           miembroActual!.id.toString()));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
@@ -39,7 +39,7 @@ Future<List<Chat>> fetchChats() async {
 
 Future<List<dynamic>> fetchNamesPersonDestino(int idPersonDestino) async {
   final response = await http.get(Uri.parse(
-      'https://backendapi-398117.rj.r.appspot.com/getnamespersondestino/' +
+      'http://10.0.2.2:3000/getnamespersondestino/' +
           idPersonDestino.toString()));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);

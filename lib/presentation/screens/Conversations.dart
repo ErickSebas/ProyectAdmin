@@ -33,29 +33,37 @@ class ChatScreenState extends StatefulWidget {
 
 class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProviderStateMixin {
   TabController? _tabController;
-  late IO.Socket socket;
+  final emailController = TextEditingController();
+
 
   @override
   void initState() {
     super.initState();
+
+    if(namesChats.isEmpty){
+      fetchNamesPersonDestino(miembroActual!.id).then((value) => {
+        setState(() {
+            namesChats = value;
+          })
+      });
+      fetchChats().then((value) => {
+        setState((){
+          chats = value;
+        })
+      });
+    }
+    
     _tabController = TabController(length: 2, vsync: this);
-
-    socket = IO.io('http://10.0.2.2:3000', <String, dynamic>{ //192.168.14.112
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
-
-    socket.connect();
-    socket.onConnect((_) {
-      print('Conectado');
-    });
-    socket.onConnectError((data) => print("Error de conexión: $data"));
-    socket.onError((data) => print("Error: $data"));
 
     //namesChats = await fetchNamesPersonDestino(miembroActual!.id);
     socket.on('chat message', (data) async {
       List<dynamic> namesChatsNew = await fetchNamesPersonDestino(miembroActual!.id);
       if (mounted) {
+         fetchChats().then((value) => {
+            setState((){
+              chats = value;
+            })
+          });
         setState(() {
           namesChats = namesChatsNew;
         });
@@ -63,51 +71,146 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
     });
   }
 
+  
+
   @override
   void dispose() {
-    socket.disconnect();
     super.dispose();
+  }
+
+  Future<void> addNewChat() async {
+    //Registrar Nuevo Chat
+    int idPersonNewChat=0;
+    Chat newChat = Chat(idChats: 0, idPerson: 0, idPersonDestino: 0, fechaActualizacion: DateTime.now());
+    await getIdPersonByEMail(emailController.text).then((value) => {
+      idPersonNewChat = value,
+      newChat = Chat(idChats: 0, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()),
+    });
+    
+    //
+    int newIdChat = 0;
+    await registerNewChat(newChat);
+    await getLastIdChat().then((value) => {
+        newIdChat = value,
+        setState(() {
+          chats.add(Chat(idChats: newIdChat, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()));
+        })
+    });
+    
+    
+    List<dynamic> namesChatsNew = [];
+    namesChats.clear();
+    await fetchNamesPersonDestino(miembroActual!.id).then((value) => {
+      namesChatsNew = value,
+      setState(() {
+        namesChats = namesChatsNew;
+      })
+    });
+    
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF4D6596),
-      appBar: AppBar(
-        backgroundColor: Color(0xFF4D6596),
-        title: Text('Chats'),
-        bottom: TabBar(
+  backgroundColor: Color(0xFF4D6596),
+  appBar: AppBar(
+    backgroundColor: Color(0xFF4D6596),
+    title: Text('Chats'),
+    bottom: TabBar(
+      controller: _tabController,
+      tabs: [
+        Tab(text: 'Administración'),
+        Tab(text: 'Soporte'),
+      ],
+    ),
+    leading: Builder(
+      builder: (context) => IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider(
+                create: (context) => CampaignProvider(),
+                child: CampaignPage(),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+  ),
+  body: namesChats.isNotEmpty
+      ? TabBarView(
           controller: _tabController,
-          tabs: [
-            Tab(text: 'Administración'),
-            Tab(text: 'Soporte'),
+          children: [
+            ChatList(),
+            EstadoList(),
           ],
+        )
+      : Center(
+          child: CircularProgressIndicator(),
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider(
-                    create: (context) => CampaignProvider(),
-                    child: CampaignPage(),
+  floatingActionButton: FloatingActionButton(
+     onPressed: () {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Iniciar nuevo chat'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Ingresa el email de la persona con la que quieres chatear:'),
+                SizedBox(height: 10),
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  style: TextStyle(color: Color(0xFF4D6596), fontSize: 16),
+                  cursorColor: Color(0xFF4D6596),
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    labelStyle: TextStyle(color: Color(0xFF4D6596)),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF4D6596), width: 2.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFF4D6596).withOpacity(0.5), width: 2.0),
+                    ),
+                    border: OutlineInputBorder(),
+                    hintStyle: TextStyle(color: Color(0xFF4D6596).withOpacity(0.5)),
+                    prefixIcon: Icon(Icons.email, color: Color(0xFF4D6596)),
                   ),
                 ),
-              );
-            },
-          ),
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          ChatList(),
-          EstadoList(),
-        ],
-      ),
-    );
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: Text('Cancelar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('Aceptar'),
+                onPressed: () async {
+                  await addNewChat();
+
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+    child: Icon(Icons.chat), // Icono de chat
+    backgroundColor: Color.fromARGB(255, 0, 204, 255),
+    foregroundColor: Colors.white,
+    tooltip: 'Iniciar nuevo chat',
+  ),
+);
+
   }
 }
 
@@ -122,8 +225,6 @@ class ChatList extends StatelessWidget {
           elevation: 5,
           child: InkWell(
             onTap: () async {
-              // Aquí puedes navegar a la página del chat
-              messages = await fetchMessage(chats[index].idChats);
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"],)),
