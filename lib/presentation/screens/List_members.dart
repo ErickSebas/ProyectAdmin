@@ -50,21 +50,21 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
     if (selectedRole == "Todos") {
       return allMembers.where((member) {
         final lowerCaseName = member.names.toLowerCase();
-        final lowerCaseCarnet = member.carnet.toLowerCase();
+        final lowerCaseCarnet = member.carnet?.toLowerCase();
         final lowerCaseQuery = searchQuery.toLowerCase();
 
         return lowerCaseName.contains(lowerCaseQuery) ||
-            lowerCaseCarnet.contains(lowerCaseQuery);
+            lowerCaseCarnet!.contains(lowerCaseQuery);
       }).toList();
     } else {
       return allMembers.where((member) {
         final lowerCaseName = member.names.toLowerCase();
-        final lowerCaseCarnet = member.carnet.toLowerCase();
-        final lowerCaseRole = member.role.toLowerCase();
+        final lowerCaseCarnet = member.carnet?.toLowerCase();
+        final lowerCaseRole = member.role?.toLowerCase();
         final lowerCaseQuery = searchQuery.toLowerCase();
 
         return (lowerCaseName.contains(lowerCaseQuery) ||
-                lowerCaseCarnet.contains(lowerCaseQuery)) &&
+                lowerCaseCarnet!.contains(lowerCaseQuery)) &&
             lowerCaseRole == selectedRole.toLowerCase();
       }).toList();
     }

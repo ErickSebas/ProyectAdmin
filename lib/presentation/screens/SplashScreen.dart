@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     socket =
-        IO.io('http://10.0.2.2:3000', <String, dynamic>{
+        IO.io('http://181.188.191.35:3000', <String, dynamic>{
       //192.168.14.112
       'transports': ['websocket'],
       'autoConnect': false,

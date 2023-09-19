@@ -41,6 +41,7 @@ List<Chat> chats = [];
 List<dynamic> namesChats=[];
 int idChatActual=0;
 late IO.Socket socket;
+int isLogin = 0;
 
 
 // Método guardar Archivo JSON
