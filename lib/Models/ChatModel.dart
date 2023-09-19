@@ -30,7 +30,7 @@ class ChatMessage {
 
   Future<List<ChatMessage>> fetchMessage(int idChat) async {
   final response = await http
-      .get(Uri.parse('http://10.0.2.2:3000/getmessage/'+idChat.toString())); //192.168.14.112
+      .get(Uri.parse('http://181.188.191.35:3000/getmessage/'+idChat.toString())); //192.168.14.112
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => ChatMessage.fromJson(data)).toList();
@@ -66,7 +66,7 @@ class ChatMessage {
 
   Future<int> getIdRolByIdPerson(int id) async {
   final response = await http
-      .get(Uri.parse('http://10.0.2.2/getidrol/'+id.toString())); //192.168.14.112
+      .get(Uri.parse('http://181.188.191.35:3000/getidrol/'+id.toString())); //192.168.14.112
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     print(jsonResponse[0]['idRol']);
