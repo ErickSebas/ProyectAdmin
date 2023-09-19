@@ -74,7 +74,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> sendMessage(int idPerson, String mensaje) async {
-    final url = 'http://10.0.2.2:3000/sendmessage';
+    final url = 'http://181.188.191.35:3000/sendmessage';
     final response = await http.post(
       Uri.parse(url),
       headers: {

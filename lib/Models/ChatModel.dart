@@ -22,7 +22,7 @@ class ChatMessage {
 
   Future<List<ChatMessage>> fetchMessage(int idChat) async {
   final response = await http
-      .get(Uri.parse('https://backendapi-398117.rj.r.appspot.com/getmessage/'+idChat.toString())); //192.168.14.112
+      .get(Uri.parse('http://181.188.191.35:3000/getmessage/'+idChat.toString())); //192.168.14.112
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => ChatMessage.fromJson(data)).toList();
@@ -33,7 +33,7 @@ class ChatMessage {
 
   Future<int> getLastIdChat() async {
   final response = await http
-      .get(Uri.parse('http://10.0.2.2:3000/lastidchat/')); //192.168.14.112
+      .get(Uri.parse('http://181.188.191.35:3000/lastidchat/')); //192.168.14.112
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     print(jsonResponse[0]['AUTO_INCREMENT']);
@@ -46,7 +46,7 @@ class ChatMessage {
 
   Future<int> getIdPersonByEMail(String correo) async {
   final response = await http
-      .get(Uri.parse('http://10.0.2.2:3000/getpersonbyemail/'+correo)); //192.168.14.112
+      .get(Uri.parse('http://181.188.191.35:3000/getpersonbyemail/'+correo)); //192.168.14.112
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     print(jsonResponse[0]['idPerson']);
@@ -65,7 +65,7 @@ Future<void> registerNewChat(Chat newChat) async {
     'idPersonDestino': newChat.idPersonDestino,
   });
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:3000/insertchat'),
+    Uri.parse('http://181.188.191.35:3000/insertchat'),
     headers: {
       'Content-Type': 'application/json',
     },
