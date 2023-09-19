@@ -44,7 +44,7 @@ class CampaignProvider extends ChangeNotifier {
 
   Future<void> loadCampaigns() async {
     campaigns1 = await fetchCampaigns();
-
+    
     notifyListeners();
   }
 
@@ -182,12 +182,40 @@ class CampaignPage extends StatelessWidget {
               leading: Icon(Icons.message),
               title: Text('Mensaje'),
               onTap: () async {
+                if(miembroActual!.role=='Cliente'){
+                  Chat chatCliente = Chat(idChats: 0, idPerson: null, idPersonDestino: miembroActual!.id, fechaActualizacion: DateTime.now());
+                  int lastId =0;
+                  List<Chat> filteredList=[];
+                  await fetchChats().then((value) => {
+                    filteredList = value.where((element) => element.idPersonDestino == miembroActual!.id).toList(),
+                    if(filteredList.isEmpty){
+                      registerNewChat(chatCliente).then((value) => {
+                        getLastIdChat().then((value) => {
+                          lastId = value,
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ChatPage(idChat: lastId, nombreChat: 'Soporte',idPersonDestino: 0,)),
+                          ) 
+                        })
+                      })
+                    }else{
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ChatPage(idChat: filteredList[0].idChats, nombreChat: 'Soporte', idPersonDestino: 0,)),
+                      ) 
+                    }
+                  });
+                  print(filteredList[0].idPersonDestino);
+                  
+                }else{
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ChatScreenState()),
+                  );
+                }
                 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChatScreenState()),
-                );
+                
               },
             ),
             ListTile(

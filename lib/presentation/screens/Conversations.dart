@@ -34,6 +34,7 @@ class ChatScreenState extends StatefulWidget {
 class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProviderStateMixin {
   TabController? _tabController;
   final emailController = TextEditingController();
+  bool isLoading = true;
 
 
   @override
@@ -42,33 +43,46 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
 
     if(namesChats.isEmpty){
       fetchNamesPersonDestino(miembroActual!.id).then((value) => {
-        setState(() {
+        if(mounted){
+          setState(() {
             namesChats = value;
           })
+        }
+        
       });
       fetchChats().then((value) => {
-        setState((){
-          chats = value;
-        })
+        isLoading = false,
+        if(mounted){
+          setState((){
+            chats = value;
+          })
+        }
+        
       });
+    }else{
+      isLoading=false;
     }
     
     _tabController = TabController(length: 2, vsync: this);
-
     //namesChats = await fetchNamesPersonDestino(miembroActual!.id);
     socket.on('chat message', (data) async {
+      if (!mounted) return; 
       List<dynamic> namesChatsNew = await fetchNamesPersonDestino(miembroActual!.id);
-      if (mounted) {
-         fetchChats().then((value) => {
-            setState((){
-              chats = value;
-            })
+      fetchChats().then((value) {
+        if (mounted) { // Asegúrate de comprobar aquí también
+          setState(() {
+            chats = value;
           });
+        }
+      });
+
+      if (mounted) {
         setState(() {
           namesChats = namesChatsNew;
         });
       }
     });
+
   }
 
   
@@ -80,32 +94,45 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
 
   Future<void> addNewChat() async {
     //Registrar Nuevo Chat
+    bool canUser = true;
     int idPersonNewChat=0;
     Chat newChat = Chat(idChats: 0, idPerson: 0, idPersonDestino: 0, fechaActualizacion: DateTime.now());
     await getIdPersonByEMail(emailController.text).then((value) => {
       idPersonNewChat = value,
+      if(value==miembroActual!.id){
+        Mostrar_Error(context, "No puede iniciar un chat con su correo"),
+        canUser =false
+      }else if(value==0){
+        Mostrar_Error(context, "No se encontró el correo"),
+        canUser = false
+      },
       newChat = Chat(idChats: 0, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()),
     });
-    
+    if(canUser){
+      int newIdChat = 0;
+      await registerNewChat(newChat);
+      await getLastIdChat().then((value) => {
+          newIdChat = value,
+          setState(() {
+            chats.add(Chat(idChats: newIdChat, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()));
+          })
+      });
+      
+      
+      List<dynamic> namesChatsNew = [];
+      namesChats.clear();
+      await fetchNamesPersonDestino(miembroActual!.id).then((value) => {
+        if(mounted){
+          namesChatsNew = value,
+          setState(() {
+            namesChats = namesChatsNew;
+          })
+        }
+        
+      });
+    }
     //
-    int newIdChat = 0;
-    await registerNewChat(newChat);
-    await getLastIdChat().then((value) => {
-        newIdChat = value,
-        setState(() {
-          chats.add(Chat(idChats: newIdChat, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()));
-        })
-    });
     
-    
-    List<dynamic> namesChatsNew = [];
-    namesChats.clear();
-    await fetchNamesPersonDestino(miembroActual!.id).then((value) => {
-      namesChatsNew = value,
-      setState(() {
-        namesChats = namesChatsNew;
-      })
-    });
     
   }
 
@@ -140,7 +167,7 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
       ),
     ),
   ),
-  body: namesChats.isNotEmpty
+  body: isLoading==false
       ? TabBarView(
           controller: _tabController,
           children: [
@@ -194,9 +221,9 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
               TextButton(
                 child: Text('Aceptar'),
                 onPressed: () async {
-                  await addNewChat();
-
                   Navigator.of(context).pop();
+                  await addNewChat();
+                  emailController.clear();
                 },
               ),
             ],
@@ -220,14 +247,14 @@ class ChatList extends StatelessWidget {
     return ListView.builder(
       itemCount: chats.length,
       itemBuilder: (context, index) {
-        return Card(
+        return chats[index].idPerson!=null? Card(
           margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           elevation: 5,
           child: InkWell(
             onTap: () async {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"],)),
+                MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"], idPersonDestino: 0,)),
               );
             },
             child: ListTile(
@@ -239,7 +266,7 @@ class ChatList extends StatelessWidget {
               ),
             ),
           ),
-        );
+        ):Container();
       },
     );
   }
@@ -251,27 +278,27 @@ class EstadoList extends StatelessWidget {
     return ListView.builder(
       itemCount: chats.length,
       itemBuilder: (context, index) {
-        return Card(
+        return chats[index].idPerson==null? Card(
           margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           elevation: 5,
           child: InkWell(
             onTap: () {
-              // Aquí puedes navegar a la página del chat
-              //Navigator.push(
-              //  context,
-              //  MaterialPageRoute(builder: (context) => ChatPage(chatId: index)),
-              //);
+              print('idPersonDestino:'+chats[index].idPersonDestino.toString());
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"],idPersonDestino: chats[index].idPersonDestino)),
+              );
             },
-            child: ListTile(
-              title: Text('Chat $index'),
-              subtitle: Text('Último mensaje del chat $index'),
+            child:  ListTile(
+              title: Text(namesChats[index]["Nombres"]),
+              subtitle: Text(namesChats[index]["mensaje"]),
               leading: CircleAvatar(
                 child: Text('$index'),
                 backgroundColor: Color(0xFF4D6596),
               ),
             ),
           ),
-        );
+        ):Container();
       },
     );
   }

@@ -23,6 +23,7 @@ class ChatApp extends StatelessWidget {
       home: ChatPage(
         idChat: 0,
         nombreChat: '',
+        idPersonDestino: 0,
       ),
     );
   }
@@ -31,7 +32,8 @@ class ChatApp extends StatelessWidget {
 class ChatPage extends StatefulWidget {
   final int idChat;
   final String nombreChat;
-  ChatPage({required this.idChat, required this.nombreChat});
+  final int idPersonDestino;
+  ChatPage({required this.idChat, required this.nombreChat, required this.idPersonDestino});
   @override
   _ChatPageState createState() => _ChatPageState();
 }
@@ -39,6 +41,21 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   ScrollController _scrollController = ScrollController();
   bool isLoadingMessages=false;
+  TextStyle styleNombreMensaje = TextStyle(
+      color: Colors.grey[350],
+      fontSize: 18.0,
+      fontWeight: FontWeight.bold,
+      fontStyle: FontStyle.italic, 
+      shadows: [
+        Shadow(
+          blurRadius: 2.0,
+          color: Colors.black38,
+          offset: Offset(1.0, 1.0),
+        ),
+      ],
+    );
+
+
 
 
   TextEditingController _controller = TextEditingController();
@@ -48,20 +65,23 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
 
     fetchMessage(widget.idChat).then((value) => {
-      setState((){
-        messages = value;
-        messages = messages.reversed.toList();
-        isLoadingMessages=true;
-      })
+      if(mounted){
+        setState((){
+          messages = value;
+          messages = messages.reversed.toList();
+          print(messages.toString());
+          print(miembroActual!.id);
+          isLoadingMessages=true;
+        })
+      }
     });
-    
   
     socket.on('chat message', (data) async {
       //ChatMessage chat = ChatMessage(idPerson: miembroActual!.id, mensaje: data, idChat: widget.idChat);
       int chatId = widget.idChat;
       if (mounted) {
         setState(() {
-          messages.insert(0, ChatMessage(idPerson: data[0], mensaje: data[1], idChat: chatId));
+          messages.insert(0, ChatMessage(idPerson: data[0], mensaje: data[1], idChat: chatId, nombres: miembroActual!.names));
         });
         _scrollController.animateTo(
           0.0,
@@ -84,6 +104,7 @@ class _ChatPageState extends State<ChatPage> {
         'idPerson': idPerson,
         'mensaje': mensaje,
         'idChat': widget.idChat,
+        'Nombres': miembroActual!.names,
       }),
     );
 
@@ -127,18 +148,32 @@ class _ChatPageState extends State<ChatPage> {
                   padding: const EdgeInsets.symmetric(vertical: 5.0),
                   child: Column(
                     crossAxisAlignment:
-                        messages[index].idPerson == miembroActual!.id
+                        widget.idPersonDestino!=0?
+                         (messages[index].idPerson != widget.idPersonDestino
                             ? CrossAxisAlignment.end
-                            : CrossAxisAlignment.start,
+                            : CrossAxisAlignment.start):
+                            (messages[index].idPerson == miembroActual!.id?CrossAxisAlignment.end
+                            : CrossAxisAlignment.start),
                     children: <Widget>[
-                      messages[index].idPerson != miembroActual!.id
-                          ? Container()
-                          : Container(),
-                      
+                      widget.idPersonDestino!=0?
+                      (messages[index].idPerson != widget.idPersonDestino
+                        && messages[index].idPerson == miembroActual!.id
+                        ? Text('Yo', style: styleNombreMensaje)
+                        : Text(messages[index].nombres, style: styleNombreMensaje)
+                      )
+                      :
+                      (messages[index].idPerson == miembroActual!.id
+                        ? Text('Yo', style: styleNombreMensaje)
+                        : Text(messages[index].nombres, style: styleNombreMensaje)
+                      ),  
                       Card(
-                        color: messages[index].idPerson == miembroActual!.id
+                        color: 
+                        widget.idPersonDestino!=0?
+                        (messages[index].idPerson != widget.idPersonDestino
                             ? Colors.blue
-                            : Colors.white,
+                            : Colors.white):(messages[index].idPerson == miembroActual!.id
+                            ? Colors.blue
+                            : Colors.white),
                         elevation: 5.0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.0),
@@ -150,9 +185,12 @@ class _ChatPageState extends State<ChatPage> {
                             messages[index].mensaje,
                             style: TextStyle(
                               color:
-                                  messages[index].idPerson == miembroActual!.id
+                                  widget.idPersonDestino!=0?
+                                  (messages[index].idPerson != widget.idPersonDestino //messages[index].idPerson == miembroActual!.id
                                       ? Colors.white
-                                      : Colors.black,
+                                      : Colors.black):(messages[index].idPerson == miembroActual!.id
+                                      ? Colors.white
+                                      : Colors.black),
                             ),
                           ),
                         ),
