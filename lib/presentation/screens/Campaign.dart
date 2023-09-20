@@ -186,7 +186,7 @@ class CampaignPage extends StatelessWidget {
                   Chat chatCliente = Chat(idChats: 0, idPerson: null, idPersonDestino: miembroActual!.id, fechaActualizacion: DateTime.now());
                   int lastId =0;
                   List<Chat> filteredList=[];
-                  await fetchChats().then((value) => {
+                  await fetchChatsClient().then((value) => {
                     filteredList = value.where((element) => element.idPersonDestino == miembroActual!.id).toList(),
                     if(filteredList.isEmpty){
                       registerNewChat(chatCliente).then((value) => {

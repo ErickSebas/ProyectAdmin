@@ -55,6 +55,7 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
         if(mounted){
           setState((){
             chats = value;
+            print(chats.toList());
           })
         }
         
@@ -62,6 +63,7 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
     }else{
       isLoading=false;
     }
+
     
     _tabController = TabController(length: 2, vsync: this);
     //namesChats = await fetchNamesPersonDestino(miembroActual!.id);
@@ -92,6 +94,13 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
     super.dispose();
   }
 
+  Future<void> eliminarChat(int index) async{
+    await deleteChat(chats[index].idChats);
+    setState(() {
+      chats.removeAt(index);
+    });
+  }
+
   Future<void> addNewChat() async {
     //Registrar Nuevo Chat
     bool canUser = true;
@@ -117,10 +126,9 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
             chats.add(Chat(idChats: newIdChat, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()));
           })
       });
-      
-      
+ 
       List<dynamic> namesChatsNew = [];
-      namesChats.clear();
+      //namesChats.clear();
       await fetchNamesPersonDestino(miembroActual!.id).then((value) => {
         if(mounted){
           namesChatsNew = value,
@@ -171,7 +179,7 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
       ? TabBarView(
           controller: _tabController,
           children: [
-            ChatList(),
+            ChatList(eliminarChatFunction: eliminarChat,),
             EstadoList(),
           ],
         )
@@ -184,7 +192,7 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Iniciar nuevo chat'),
+            title: Text('Iniciar nuevo chat en Administración'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -242,6 +250,10 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
 }
 
 class ChatList extends StatelessWidget {
+  final Function eliminarChatFunction;
+
+  ChatList({required this.eliminarChatFunction});
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -255,6 +267,32 @@ class ChatList extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"], idPersonDestino: 0,)),
+              );
+            },
+            onLongPress: () async {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Eliminar chat?'),
+                    content: Icon(Icons.warning, color: Colors.red, size: 50),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cancelar', style: TextStyle(color: Colors.black)),
+                        onPressed: () {
+                          Navigator.of(context).pop(0); 
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+                        onPressed: () async {
+                          eliminarChatFunction(index);
+                          Navigator.of(context).pop(1); 
+                        },
+                      ),
+                    ],
+                  );
+                },
               );
             },
             child: ListTile(
@@ -289,6 +327,7 @@ class EstadoList extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"],idPersonDestino: chats[index].idPersonDestino)),
               );
             },
+            
             child:  ListTile(
               title: Text(namesChats[index]["Nombres"]),
               subtitle: Text(namesChats[index]["mensaje"]),

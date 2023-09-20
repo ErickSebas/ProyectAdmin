@@ -6,6 +6,19 @@
         android:label="AdminMaYpiVaC"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <service
+            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingBackgroundService"
+            android:exported="false"
+            android:stopWithTask="false" />
+
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"></action>
+            </intent-filter>
+        </receiver>
+        <receiver android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+
         <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyD8VxZxvKCkDbGNwfoCoTMDfUODjnccBlM"/>
         <activity
             android:name=".MainActivity"

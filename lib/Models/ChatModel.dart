@@ -64,6 +64,14 @@ class ChatMessage {
   }
 }
 
+  Future<void> deleteChat(int idChat) async {
+  final response = await http
+      .put(Uri.parse('http://181.188.191.35:3000/deletechat/'+idChat.toString())); //192.168.14.112
+   if (response.statusCode != 200 && response.statusCode != 201) {
+    throw Exception(response);
+  }
+}
+
   Future<int> getIdRolByIdPerson(int id) async {
   final response = await http
       .get(Uri.parse('http://181.188.191.35:3000/getidrol/'+id.toString())); //192.168.14.112

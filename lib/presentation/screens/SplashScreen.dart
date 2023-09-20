@@ -10,10 +10,13 @@
 
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:admin/presentation/screens/Login.dart';
+import 'package:admin/services/global_notification.dart';
+import 'package:admin/services/notification_services.dart';
 import 'package:admin/services/services_firebase.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class SplashScreen extends StatefulWidget {
@@ -26,6 +29,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
+    
     socket =
         IO.io('http://181.188.191.35:3000', <String, dynamic>{
       //192.168.14.112
@@ -44,7 +48,16 @@ class _SplashScreenState extends State<SplashScreen> {
     Navegar_Pantalla_Main();
   }
 
+  showNotification(){
+    setState(() {
+      Provider.of<LocalNotificationService>(context, listen: false).showNotification(
+        CustomNotification(id: 1, title: 'teste', body: 'Hello')
+      );
+    });
+  }
+
   Future<void> Navegar_Pantalla_Main() async {
+    showNotification();
     campaigns = await fetchCampaigns();
     //await Future.delayed(const Duration(seconds: 2)); // Espera 2 segundos
     // ignore: use_build_context_synchronously
