@@ -1,5 +1,6 @@
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
+import 'package:admin/services/global_notification.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/Models/ChatModel.dart';
@@ -81,7 +82,7 @@ class _ChatPageState extends State<ChatPage> {
       int chatId = widget.idChat;
       if (mounted) {
         setState(() {
-          messages.insert(0, ChatMessage(idPerson: data[0], mensaje: data[1], idChat: chatId, nombres: miembroActual!.names));
+          messages.insert(0, ChatMessage(idPerson: data[0], mensaje: data[1], idChat: chatId, nombres: data[2]));
         });
         _scrollController.animateTo(
           0.0,

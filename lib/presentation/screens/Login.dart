@@ -44,11 +44,31 @@ class LoginPage extends StatelessWidget {
 
       miembroActual = member;
 
+      insertToken();
+
       return member;
     } else if (response.statusCode == 404) {
       return null; // Usuario no encontrado
     } else {
       throw Exception('Error al autenticar el usuario');
+    }
+  }
+
+  insertToken() async {
+    final url = 'http://181.188.191.35:3000/inserttoken';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'idPerson': miembroActual!.id,
+        'token': token,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      print('Error al insertar el token');
     }
   }
 
