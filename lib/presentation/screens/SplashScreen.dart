@@ -48,16 +48,8 @@ class _SplashScreenState extends State<SplashScreen> {
     Navegar_Pantalla_Main();
   }
 
-  showNotification(){
-    setState(() {
-      Provider.of<LocalNotificationService>(context, listen: false).showNotification(
-        CustomNotification(id: 1, title: 'teste', body: 'Hello')
-      );
-    });
-  }
 
   Future<void> Navegar_Pantalla_Main() async {
-    showNotification();
     campaigns = await fetchCampaigns();
     //await Future.delayed(const Duration(seconds: 2)); // Espera 2 segundos
     // ignore: use_build_context_synchronously

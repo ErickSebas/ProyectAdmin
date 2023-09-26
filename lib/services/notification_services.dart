@@ -19,46 +19,59 @@ class PushNotificationService {
 
 
   static Future _backgroundHandler( RemoteMessage message )async{
-    print('onBackground Handler ${message.messageId}');
+    print('onBackGround Handler ${message.messageId}');
+    var idPerson = message.data['idChat'];
     _messageStream.add(message.notification?.title ?? 'No title');
-
-    CustomNotification customNotification = CustomNotification(
-      id: 0, 
-      title: message.notification?.title,
-      body: message.notification?.body,
-    );
-
-    localNotificationService.showNotification(customNotification);
+    print(idPerson);
+    print(currentChatId);
     
+
+    if(idPerson!=currentChatId){
+      CustomNotification customNotification = CustomNotification(
+        id: 0, 
+        title: message.notification?.title,
+        body: message.notification?.body,
+      );
+      localNotificationService.showNotification(customNotification);
+    }
   }
 
   static Future _onMessageHandler(RemoteMessage message) async {
-    print('onBackground Handler ${message.messageId}');
+    print('onMessage Handler ${message.messageId}');
+    var idPerson = message.data['idChat'];
     _messageStream.add(message.notification?.title ?? 'No title');
+    print(idPerson);
+    print(currentChatId);
+    
 
-    CustomNotification customNotification = CustomNotification(
-      id: 0, 
-      title: message.notification?.title,
-      body: message.notification?.body,
-    );
-
-    localNotificationService.showNotification(customNotification);
+    if(idPerson!=currentChatId){
+      CustomNotification customNotification = CustomNotification(
+        id: 0, 
+        title: message.notification?.title,
+        body: message.notification?.body,
+      );
+      localNotificationService.showNotification(customNotification);
+    }
     
 }
 
 
   static Future _onMessageOpenApp( RemoteMessage message )async{
     print('onMessageOpenApp Handler ${message.messageId}');
+    var idPerson = message.data['idChat'];
     _messageStream.add(message.notification?.title ?? 'No title');
-
-    CustomNotification customNotification = CustomNotification(
-      id: 0, 
-      title: message.notification?.title,
-      body: message.notification?.body,
-    );
-
-    localNotificationService.showNotification(customNotification);
+    print(idPerson);
+    print(currentChatId);
     
+
+    if(idPerson!=currentChatId){
+      CustomNotification customNotification = CustomNotification(
+        id: 0, 
+        title: message.notification?.title,
+        body: message.notification?.body,
+      );
+      localNotificationService.showNotification(customNotification);
+    }
   }
 
   static Future initializeApp() async {

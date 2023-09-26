@@ -43,6 +43,7 @@ int idChatActual=0;
 late IO.Socket socket;
 int isLogin = 0;
 String? token;
+int currentChatId = 0;
 
 
 // Método guardar Archivo JSON

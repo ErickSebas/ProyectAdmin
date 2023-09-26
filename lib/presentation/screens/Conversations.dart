@@ -47,19 +47,21 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
           setState(() {
             namesChats = value;
           })
-        }
+        },
+        fetchChats().then((value) => {
+          
+          if(mounted){
+            setState((){
+              chats = value;
+              print(chats.toList());
+            })
+          },
+          isLoading = false,
+          
+        })
         
       });
-      fetchChats().then((value) => {
-        isLoading = false,
-        if(mounted){
-          setState((){
-            chats = value;
-            print(chats.toList());
-          })
-        }
-        
-      });
+      
     }else{
       isLoading=false;
     }
@@ -264,6 +266,7 @@ class ChatList extends StatelessWidget {
           elevation: 5,
           child: InkWell(
             onTap: () async {
+              currentChatId =  chats[index].idChats;
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"], idPersonDestino: 0,)),

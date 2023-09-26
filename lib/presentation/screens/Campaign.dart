@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:admin/Models/ChatModel.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/Models/Profile.dart';
@@ -14,6 +16,7 @@ import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/Models/CampaignModel.dart';
+import 'package:http/http.dart' as http;
 
 int estadoPerfil = 0;
 void main() => runApp(MyApp());
@@ -58,7 +61,26 @@ class CampaignProvider extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  
 }
+
+  Future<void> tokenClean() async {
+    final url = 'http://181.188.191.35:3000/logouttoken';
+    final response = await http.put(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({
+        'token': token,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al enviar el mensaje');
+    }
+  }
 
 class CampaignPage extends StatelessWidget {
   @override
@@ -247,6 +269,7 @@ class CampaignPage extends StatelessWidget {
                 leading: Icon(Icons.logout),
                 title: Text('Cerrar Sesión'),
                 onTap: () {
+                  tokenClean();
                   chats.clear();
                   namesChats.clear();
                   miembroActual = null;

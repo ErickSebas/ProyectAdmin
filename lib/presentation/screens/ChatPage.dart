@@ -64,6 +64,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    
 
     fetchMessage(widget.idChat).then((value) => {
       if(mounted){
@@ -82,6 +83,7 @@ class _ChatPageState extends State<ChatPage> {
       int chatId = widget.idChat;
       if (mounted) {
         setState(() {
+          if(chatId == data[3])
           messages.insert(0, ChatMessage(idPerson: data[0], mensaje: data[1], idChat: chatId, nombres: data[2]));
         });
         _scrollController.animateTo(
@@ -116,7 +118,10 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    currentChatId=0;
     super.dispose();
+    
+    
   }
 
   @override
