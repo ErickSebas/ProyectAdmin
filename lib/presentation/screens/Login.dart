@@ -166,7 +166,7 @@ class _LoginPage extends State<LoginPage> {
     final prefs = await SharedPreferences.getInstance();
     memberId = prefs.getInt('miembroLocal');
     print(memberId);
-    if (memberId != 0 || memberId == null) {
+    if (memberId != 0 && memberId != null) {
       // Si existe un memberId en la caché, realizar una solicitud HTTP para obtener detalles del miembro.
       showDialog(
         context: context,
