@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 int estadoPerfil = 0;
 void main() => runApp(MyApp());
@@ -268,7 +269,9 @@ class CampaignPage extends StatelessWidget {
               child: ListTile(
                 leading: Icon(Icons.logout),
                 title: Text('Cerrar Sesión'),
-                onTap: () {
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  prefs.setInt('miembroLocal', 0);
                   tokenClean();
                   chats.clear();
                   namesChats.clear();
