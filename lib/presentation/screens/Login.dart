@@ -44,6 +44,7 @@ class LoginPage extends StatelessWidget {
       final member = Member.fromJson(data);
 
       miembroActual = member;
+      await saveMemberIdToCache(member.id);
 
       insertToken();
 
@@ -152,7 +153,7 @@ class LoginPage extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     final memberId = prefs.getInt('miembroLocal');
     print(memberId);
-    if (memberId != null) {
+    if (memberId != 0) {
       // Si existe un memberId en la caché, realizar una solicitud HTTP para obtener detalles del miembro.
       showDialog(
         context: context,
@@ -176,7 +177,7 @@ class LoginPage extends StatelessWidget {
         },
       );
 
-      final member = await fetchMemberById(memberId);
+      final member = await fetchMemberById(memberId!);
       miembroActual = member;
 
       if (member != null) {
@@ -289,6 +290,7 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    tryAutoLogin(context);
     return Scaffold(
       body: Center(
         child: Padding(
