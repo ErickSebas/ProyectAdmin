@@ -149,132 +149,72 @@ class LoginPage extends StatelessWidget {
   }
 
   Future<void> tryAutoLogin(BuildContext context) async {
-
     final prefs = await SharedPreferences.getInstance();
-
     final memberId = prefs.getInt('miembroLocal');
-
     print(memberId);
-
     if (memberId != null) {
-
       // Si existe un memberId en la caché, realizar una solicitud HTTP para obtener detalles del miembro.
-
       showDialog(
-
         context: context,
-
         barrierDismissible: false,
-
         builder: (context) {
-
           return AlertDialog(
-
             title: Text('Espere unos momentos....'),
-
             content: SingleChildScrollView(
-
               child: ListBody(
-
                 children: [
-
                   Center(
-
                     child: SpinKitFadingCube(
-
                       color: Colors.blue, // Color de la animación
-
                       size: 50.0, // Tamaño de la animación
-
                     ),
-
                   ),
-
                 ],
-
               ),
-
             ),
-
           );
-
         },
-
       );
 
       final member = await fetchMemberById(memberId);
-
       miembroActual = member;
 
- 
-
       if (member != null) {
-
         // Navega a la página CampaignProvider con la información del miembro obtenida.
-
         Navigator.of(context, rootNavigator: true).pop();
 
- 
-
         Navigator.pushReplacement(
-
           context,
-
           MaterialPageRoute(
-
             builder: (context) => ChangeNotifierProvider(
-
               create: (context) => CampaignProvider(),
-
               child: CampaignPage(),
-
             ),
-
           ),
-
         );
-
       }
-
     }
-
   }
 
  
 
   Future<Member?> fetchMemberById(int memberId) async {
-
     final url =
-
         Uri.parse('http://181.188.191.35:3000/userbyid?idUser=$memberId');
-
- 
 
     final response = await http.get(url);
 
- 
-
     if (response.statusCode == 200) {
-
       final Map<String, dynamic> data = json.decode(response.body);
-
       final member = Member.fromJson(data);
-
       return member;
-
     } else {
-
       return null;
-
     }
-
   }
    Future<void> saveMemberIdToCache(int memberId) async {
-
     final prefs = await SharedPreferences.getInstance();
-
     await prefs.setInt('miembroLocal', memberId);
-
   }
 
   Future<void> _showEmailDialog(BuildContext context) async {
