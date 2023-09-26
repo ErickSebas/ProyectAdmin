@@ -26,11 +26,24 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _LoginPage();
+}
+
+class _LoginPage extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  int? memberId=0;
 
   Member? globalLoggedInMember;
+
+  @override
+  void initState(){
+    super.initState();
+    if(mounted)
+    tryAutoLogin(context);
+  }
 
   Future<Member?> authenticateHttp(String email, String password) async {
     final url = Uri.parse(
@@ -151,7 +164,7 @@ class LoginPage extends StatelessWidget {
 
   Future<void> tryAutoLogin(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
-    final memberId = prefs.getInt('miembroLocal');
+    memberId = prefs.getInt('miembroLocal');
     print(memberId);
     if (memberId != 0) {
       // Si existe un memberId en la caché, realizar una solicitud HTTP para obtener detalles del miembro.
@@ -179,21 +192,24 @@ class LoginPage extends StatelessWidget {
 
       final member = await fetchMemberById(memberId!);
       miembroActual = member;
+      if(mounted){
+         Navigator.of(context, rootNavigator: true).pop();
+        if (member != null) {
+          // Navega a la página CampaignProvider con la información del miembro obtenida.
+          
 
-      if (member != null) {
-        // Navega a la página CampaignProvider con la información del miembro obtenida.
-        Navigator.of(context, rootNavigator: true).pop();
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChangeNotifierProvider(
-              create: (context) => CampaignProvider(),
-              child: CampaignPage(),
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider(
+                create: (context) => CampaignProvider(),
+                child: CampaignPage(),
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
+     
     }
   }
 
@@ -288,9 +304,8 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  @override
+@override
   Widget build(BuildContext context) {
-    tryAutoLogin(context);
     return Scaffold(
       body: Center(
         child: Padding(
