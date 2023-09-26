@@ -34,15 +34,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPage extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  int? memberId=0;
+  int? memberId = 0;
 
   Member? globalLoggedInMember;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
-    if(mounted)
-    tryAutoLogin(context);
+    if (mounted) tryAutoLogin(context);
   }
 
   Future<Member?> authenticateHttp(String email, String password) async {
@@ -192,11 +191,10 @@ class _LoginPage extends State<LoginPage> {
 
       final member = await fetchMemberById(memberId!);
       miembroActual = member;
-      if(mounted){
-         Navigator.of(context, rootNavigator: true).pop();
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
         if (member != null) {
           // Navega a la página CampaignProvider con la información del miembro obtenida.
-          
 
           Navigator.pushReplacement(
             context,
@@ -209,11 +207,8 @@ class _LoginPage extends State<LoginPage> {
           );
         }
       }
-     
     }
   }
-
- 
 
   Future<Member?> fetchMemberById(int memberId) async {
     final url =
@@ -229,7 +224,8 @@ class _LoginPage extends State<LoginPage> {
       return null;
     }
   }
-   Future<void> saveMemberIdToCache(int memberId) async {
+
+  Future<void> saveMemberIdToCache(int memberId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('miembroLocal', memberId);
   }
@@ -256,9 +252,18 @@ class _LoginPage extends State<LoginPage> {
                   barrierDismissible: false,
                   builder: (context) {
                     return AlertDialog(
-                      title: Text('Espere unos 3 segundos por favor...'),
-                      content: Center(
-                        child: CircularProgressIndicator(),
+                      title: Text('Espere unos momentos....'),
+                      content: SingleChildScrollView(
+                        child: ListBody(
+                          children: [s
+                            Center(
+                              child: SpinKitFadingCube(
+                                color: Colors.blue, // Color de la animación
+                                size: 50.0, // Tamaño de la animación
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -304,7 +309,7 @@ class _LoginPage extends State<LoginPage> {
     );
   }
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(

@@ -22,6 +22,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   String _password = '';
   String _confirmPassword = '';
   bool _isValidCode = false;
+  bool _showPasswordFields =
+      false; // Variable para mostrar/ocultar campos de contraseña
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   void _validate() async {
     // Verificar si todos los campos están llenos
+    print("se esta validando");
     if (_code.length != 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -50,6 +53,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       // El código es válido, habilitar los campos de contraseña y repetir contraseña
       setState(() {
         _isValidCode = true;
+        _showPasswordFields = true;
       });
     } else {
       // El código no es válido, mostrar un mensaje de error
@@ -133,11 +137,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 onChanged: (value) {
                   setState(() {
                     _code = value;
+                    // Ocultar los campos de contraseña si el código no tiene 5 dígitos
+                    if (value.length != 5) {
+                      _showPasswordFields = false;
+                    }
                   });
                 },
                 onCompleted: (value) {
-                  // Callback cuando se completa la entrada del código
-                  // Puedes agregar lógica aquí
+                  _validate();
                 },
                 keyboardType: TextInputType.number,
                 pinTheme: PinTheme(
@@ -158,7 +165,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 enableActiveFill: true,
               ),
               SizedBox(height: 16),
-              _isValidCode
+              _showPasswordFields
                   ? Column(
                       children: [
                         TextFormField(
@@ -188,16 +195,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                           },
                           obscureText: true,
                         ),
-                      ],
-                    )
-                  : SizedBox(),
-              SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: _isValidCode
-                        ? () async {
+                        SizedBox(height: 32),
+                        ElevatedButton(
+                          onPressed: () async {
                             // Verificar si las contraseñas coinciden
                             if (_password != _confirmPassword) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -221,9 +221,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ProfilePage(
-                                      member: widget.member,
-                                    ),
+                                    builder: (context) =>
+                                        ProfilePage(member: widget.member),
                                   ),
                                 );
                               } else {
@@ -231,11 +230,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) =>
-                                        MyApp(), // Reemplaza con tu página deseada
+                                    builder: (context) => MyApp(),
                                   ),
                                 );
                               }
+
+                              // Mostrar el mensaje de confirmación
+                              Mostrar_Mensaje(
+                                  context, 'Contraseña cambiada con éxito');
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -244,45 +246,58 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                                 ),
                               );
                             }
-                          }
-                        : null,
-                    child: Text('Guardar'),
-                    style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF1A2946),
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (isLogin == 0) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                ProfilePage(member: widget.member),
+                          },
+                          child: Text('Guardar'),
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.white, // Fondo blanco
+                            onPrimary:
+                                Color(0xFF4D6596), // Texto color 0xFF4D6596
+                            minimumSize: Size(double.infinity,
+                                50), // Ancho igual y altura de 50
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(20), // Radio de borde
+                            ),
                           ),
-                        );
-                      } else {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MyApp(),
-                          ),
-                        );
-                      }
-                    },
-                    child: Text('Cancelar'),
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.red,
+                        ),
+                      ],
+                    )
+                  : SizedBox(),
+              SizedBox(height: 16),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  if (isLogin == 0) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ProfilePage(member: widget.member),
+                      ),
+                    );
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MyApp(),
+                      ),
+                    );
+                  }
+                },
+                child: Text('Cancelar'),
+                style: ElevatedButton.styleFrom(
+                  primary: Color(0xFF4D6596), // Fondo color 0xFF4D6596
+                  onPrimary: Colors.white, // Texto blanco
+                  minimumSize:
+                      Size(double.infinity, 50), // Ancho igual y altura de 50
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20), // Radio de borde
+                    side: BorderSide(
+                      color: Colors.white, // Color del borde (blanco)
+                      width: 1.0, // Grosor del borde
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: _isValidCode ? null : _validate,
-                    child: Text('Validar Código'),
-                    style: ElevatedButton.styleFrom(
-                      primary: Colors.blue,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ],
           ),
