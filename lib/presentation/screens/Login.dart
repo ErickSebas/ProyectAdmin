@@ -255,7 +255,7 @@ class _LoginPage extends State<LoginPage> {
                       title: Text('Espere unos momentos....'),
                       content: SingleChildScrollView(
                         child: ListBody(
-                          children: [s
+                          children: [
                             Center(
                               child: SpinKitFadingCube(
                                 color: Colors.blue, // Color de la animación

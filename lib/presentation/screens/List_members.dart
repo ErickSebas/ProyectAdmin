@@ -27,7 +27,7 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
 
   Future<List<Member>> fetchMembers() async {
     final response = await http.get(
-        Uri.parse('https://backendapi-398117.rj.r.appspot.com/allaccounts'));
+        Uri.parse('http://181.188.191.35:3000/allaccounts'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);

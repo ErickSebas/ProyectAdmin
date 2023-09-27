@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 Future<List<Campaign>> fetchCampaigns() async {
   final response = await http
-      .get(Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas'));
+      .get(Uri.parse('http://181.188.191.35:3000/campanas'));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
@@ -15,7 +15,7 @@ Future<List<Campaign>> fetchCampaigns() async {
 
 Future<int> getNextIdCampana() async {
   final response = await http.get(Uri.parse(
-      'https://backendapi-398117.rj.r.appspot.com/nextidcampanas')); //////
+      'http://181.188.191.35:3000/nextidcampanas')); //////
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     print(jsonResponse[0]['AUTO_INCREMENT']);
@@ -38,7 +38,7 @@ Future<void> registerNewCampaign(Campaign newCampaign) async {
     'userId': newCampaign.userId
   });
   final response = await http.post(
-    Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas'),
+    Uri.parse('http://181.188.191.35:3000/campanas'),
     headers: {
       'Content-Type': 'application/json',
     },
@@ -63,7 +63,7 @@ Future<void> updateCampaignById(Campaign updatedCampaign) async {
     'userId': updatedCampaign.userId
   });
   final response = await http.put(
-    Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas/$id'),
+    Uri.parse('http://181.188.191.35:3000/campanas/$id'),
     headers: {
       'Content-Type': 'application/json',
     },
@@ -84,7 +84,7 @@ Future<void> deleteCampaignById(int id, int userId) async {
   // Convertir tu objeto Campaign a JSON.
   final campaignJson = json.encode({'idCampañas': id, 'userId': userId});
   final response = await http.put(
-    Uri.parse('https://backendapi-398117.rj.r.appspot.com/campanas/delete/$id'),
+    Uri.parse('http://181.188.191.35:3000/campanas/delete/$id'),
     headers: {
       'Content-Type': 'application/json',
     },

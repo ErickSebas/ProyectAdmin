@@ -84,7 +84,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   Future<void> registerUser() async {
     final url =
-        Uri.parse('https://backendapi-398117.rj.r.appspot.com/register');
+        Uri.parse('http://181.188.191.35:3000/register');
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
     } else if (selectedRole == 'Jefe de Brigada') {
@@ -125,7 +125,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   Future<void> updateUser() async {
     final url =
-        Uri.parse('https://backendapi-398117.rj.r.appspot.com/update/'+idPerson.toString()); //
+        Uri.parse('http://181.188.191.35:3000/update/'+idPerson.toString()); //
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
     } else if (selectedRole == 'Jefe de Brigada') {
@@ -176,7 +176,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   Future<void> registerJefeCarnetizador() async {
     final url = Uri.parse(
-        'https://backendapi-398117.rj.r.appspot.com/registerjefecarnetizador');
+        'http://181.188.191.35:3000/registerjefecarnetizador');
 
     final response = await http.post(
       url,
@@ -199,7 +199,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
   Future<void> updateJefeCarnetizador() async {
     final url = Uri.parse(
-        'https://backendapi-398117.rj.r.appspot.com/updatejefecarnetizador');
+        'http://181.188.191.35:3000/updatejefecarnetizador');
 
     final response = await http.put(
       url,
