@@ -26,19 +26,7 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
 
 
 
-  Future<List<Member>> fetchMembers() async {
-    final response = await http.get(
-        Uri.parse('http://10.0.2.2:3000/allaccounts'));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      final members =
-          data.map((memberData) => Member.fromJson(memberData)).toList();
-      return members;
-    } else {
-      throw Exception('Failed to load members');
-    }
-  }
 
   @override
   void initState() {
