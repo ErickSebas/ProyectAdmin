@@ -17,7 +17,7 @@ Future<List<Campaign>> fetchCampaigns() async {
 
 Future<int> getNextIdCampana() async {
   final response = await http.get(Uri.parse(
-      'http://10.0.2.2:3000/nextidcampanas')); //////
+      'http://181.188.191.35:3000/nextidcampanas')); //////
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     print(jsonResponse[0]['AUTO_INCREMENT']);

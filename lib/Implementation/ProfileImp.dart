@@ -6,7 +6,7 @@ import 'package:admin/services/services_firebase.dart';
 
   Future<List<Member>> fetchMembers() async {
     final response = await http.get(
-        Uri.parse('http://10.0.2.2:3000/allaccounts'));
+        Uri.parse('http://181.188.191.35:3000/allaccounts'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -60,7 +60,7 @@ import 'package:admin/services/services_firebase.dart';
 Future<void> deleteAccount(int id) async {
   final accountJson = json.encode({'idPerson': id});
   final response = await http.put(
-    Uri.parse('http://10.0.2.2:3000/accountdelete'),
+    Uri.parse('http://181.188.191.35:3000/accountdelete'),
     headers: {
       'Content-Type': 'application/json',
     },
