@@ -50,13 +50,8 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext  context) {
     return  MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7E1670)),
-          primaryColor: const Color(0xFF7E1670),
-        ),
         initialRoute: '/home',
         routes: {
-          //Pantalla principal
           '/home': (context) => const SplashScreen(),
         },
       );

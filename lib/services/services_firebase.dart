@@ -44,6 +44,7 @@ late IO.Socket socket;
 int isLogin = 0;
 String? token;
 int currentChatId = 0;
+Future<List<Member>>? members;
 
 
 // Método guardar Archivo JSON

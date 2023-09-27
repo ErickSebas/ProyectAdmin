@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/ChangePassword.dart';
 import 'package:crypto/crypto.dart';
@@ -210,20 +211,7 @@ class _LoginPage extends State<LoginPage> {
     }
   }
 
-  Future<Member?> fetchMemberById(int memberId) async {
-    final url =
-        Uri.parse('http://181.188.191.35:3000/userbyid?idUser=$memberId');
 
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      final member = Member.fromJson(data);
-      return member;
-    } else {
-      return null;
-    }
-  }
 
   Future<void> saveMemberIdToCache(int memberId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -353,11 +341,7 @@ class _LoginPage extends State<LoginPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  final loggedInMember = await authenticateHttp(
-                      emailController.text,
-                      md5
-                          .convert(utf8.encode(passwordController.text))
-                          .toString());
+                  final loggedInMember = await authenticateHttp(emailController.text, md5.convert(utf8.encode(passwordController.text)).toString());
 
                   if (loggedInMember != null) {
                     Navigator.pushReplacement(

@@ -1,6 +1,8 @@
+import 'package:admin/Implementation/CampaignImplementation.dart';
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:provider/provider.dart';
 import 'HomeClient.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
@@ -247,7 +249,29 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           setState(() {
                             estaCargando = true;
                           });
+                          
                           await Subir_Json_Firebase( id,Ubicaciones, (double valorProceso) {
+                            showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('Espere unos momentos....'),
+                                    content: SingleChildScrollView(
+                                      child: ListBody(
+                                        children: [
+                                          Center(
+                                            child: SpinKitFadingCube(
+                                              color: Colors.blue, 
+                                              size: 50.0, 
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
                               setState(() {
                                   proceso = valorProceso;
                               });
@@ -261,13 +285,34 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                         Mostrar_Finalizado(context, "Se ha actualizado con éxito");
                       }else if (_formKey.currentState!.validate()&&categoria!=null&&kml!=''&& (dateStart!.isBefore(dateEnd!)||dateStart!.isAtSameMomentAs(dateEnd!)) ){
                         //Registrar
-                      int idNextCamp=await getNextIdCampana()+1;
-                      Campaign newCampaign = Campaign(id: idNextCamp, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
-                      registerNewCampaign(newCampaign);
+                      Campaign newCampaign = Campaign(id: 0, nombre: nombre, descripcion: descripcion, categoria: categoria!, dateStart: dateStart!, dateEnd: dateEnd!, userId: miembroActual!.id);
+                      await registerNewCampaign(newCampaign);
+                      int idNextCamp=await getNextIdCampana();
                       setState(() {
                         estaCargando = true;
                       });
                       await Subir_Json_Firebase(idNextCamp,Ubicaciones, (double valorProceso) {
+                        showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('Espere unos momentos....'),
+                                content: SingleChildScrollView(
+                                  child: ListBody(
+                                    children: [
+                                      Center(
+                                        child: SpinKitFadingCube(
+                                          color: Colors.blue, 
+                                          size: 50.0, 
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          );
                           setState(() {
                               proceso = valorProceso;
                           });
@@ -299,9 +344,33 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
-                      deleteCampaignById(id, miembroActual!.id);
-                      await eliminarArchivoDeStorage(id);
-                      Mostrar_Finalizado(context, "Se ha Elminado con éxito");
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Eliminar chat?'),
+                            content: Icon(Icons.warning, color: Colors.red, size: 50),
+                            actions: <Widget>[
+                              TextButton(
+                                child: Text('Cancelar', style: TextStyle(color: Colors.black)),
+                                onPressed: () {
+                                  Navigator.of(context).pop(0); 
+                                },
+                              ),
+                              TextButton(
+                                child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                onPressed: () async {
+                                  deleteCampaignById(id, miembroActual!.id);
+                                  await eliminarArchivoDeStorage(id);
+                                  Mostrar_Finalizado(context, "Se ha Elminado con éxito");
+                                  Navigator.of(context).pop(1); 
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                      
                     },
                     child: Text('Eliminar'),
                     style: ElevatedButton.styleFrom(

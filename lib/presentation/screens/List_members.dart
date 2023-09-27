@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -23,11 +24,11 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
   String selectedRole = esCarnetizador ? "Jefe de Brigada" : "Todos";
   String searchQuery = "";
 
-  Future<List<Member>>? members;
+
 
   Future<List<Member>> fetchMembers() async {
     final response = await http.get(
-        Uri.parse('http://181.188.191.35:3000/allaccounts'));
+        Uri.parse('http://10.0.2.2:3000/allaccounts'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -230,7 +231,34 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                                           children: [
                                             ElevatedButton(
                                               onPressed: () {
-                                                // Lógica para eliminar el miembro
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Text('Eliminar chat?'),
+                                                      content: Icon(Icons.warning, color: Colors.red, size: 50),
+                                                      actions: <Widget>[
+                                                        TextButton(
+                                                          child: Text('Cancelar', style: TextStyle(color: Colors.black)),
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop(0); 
+                                                          },
+                                                        ),
+                                                        TextButton(
+                                                          child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                                          onPressed: () async {
+                                                            Navigator.of(context).pop(1); 
+                                                            await deleteAccount(member.id);
+                                                            setState(() {
+                                                              
+                                                            });
+                                                            
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
                                               },
                                               child: Text("Eliminar"),
                                             ),

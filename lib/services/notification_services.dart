@@ -26,7 +26,7 @@ class PushNotificationService {
     print(currentChatId);
     
 
-    if(idPerson!=currentChatId){
+    if(idPerson.toString()!=currentChatId.toString()){
       CustomNotification customNotification = CustomNotification(
         id: 0, 
         title: message.notification?.title,
@@ -44,7 +44,7 @@ class PushNotificationService {
     print(currentChatId);
     
 
-    if(idPerson!=currentChatId){
+    if(idPerson.toString()!=currentChatId.toString()){
       CustomNotification customNotification = CustomNotification(
         id: 0, 
         title: message.notification?.title,
@@ -64,7 +64,7 @@ class PushNotificationService {
     print(currentChatId);
     
 
-    if(idPerson!=currentChatId){
+    if(idPerson.toString()!=currentChatId.toString()){
       CustomNotification customNotification = CustomNotification(
         id: 0, 
         title: message.notification?.title,

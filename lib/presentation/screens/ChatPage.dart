@@ -1,3 +1,4 @@
+import 'package:admin/Implementation/ChatImp.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
 import 'package:admin/services/global_notification.dart';
@@ -96,25 +97,7 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  Future<void> sendMessage(int idPerson, String mensaje) async {
-    final url = 'http://181.188.191.35:3000/sendmessage';
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'idPerson': idPerson,
-        'mensaje': mensaje,
-        'idChat': widget.idChat,
-        'Nombres': miembroActual!.names,
-      }),
-    );
 
-    if (response.statusCode != 200) {
-      throw Exception('Error al enviar el mensaje');
-    }
-  }
 
   @override
   void dispose() {
@@ -235,7 +218,7 @@ class _ChatPageState extends State<ChatPage> {
                   icon: Icon(Icons.send, color: Colors.white),
                   onPressed: () async {
                     if (_controller.text.isNotEmpty) {
-                      await sendMessage(miembroActual!.id, _controller.text);
+                      await sendMessage(miembroActual!.id, _controller.text, widget.idChat);
                       //socket.emit('chat message', _controller.text);
                       _controller.clear();
                     }

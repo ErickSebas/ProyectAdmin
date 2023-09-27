@@ -1,3 +1,5 @@
+import 'package:admin/Implementation/ChatImp.dart';
+import 'package:admin/Implementation/ConversationImp.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
 import 'package:admin/presentation/screens/ChatPage.dart';
@@ -150,7 +152,7 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
   Widget build(BuildContext context) {
     return Scaffold(
   backgroundColor: Color(0xFF4D6596),
-  appBar: AppBar(
+  appBar: miembroActual!.role!="Super Admin"? AppBar(
     backgroundColor: Color(0xFF4D6596),
     title: Text('Chats'),
     bottom: TabBar(
@@ -176,13 +178,33 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
         },
       ),
     ),
+  ): AppBar(
+    backgroundColor: Color(0xFF4D6596),
+    title: Text('Chats'),
+    leading: Builder(
+      builder: (context) => IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider(
+                create: (context) => CampaignProvider(),
+                child: CampaignPage(),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
   ),
   body: isLoading==false
       ? TabBarView(
           controller: _tabController,
           children: [
             ChatList(eliminarChatFunction: eliminarChat,),
-            EstadoList(),
+            EstadoList(eliminarChatFunction: eliminarChat,)
+            ,
           ],
         )
       : Center(
@@ -302,7 +324,7 @@ class ChatList extends StatelessWidget {
               title: Text(namesChats[index]["Nombres"]),
               subtitle: Text(namesChats[index]["mensaje"]),
               leading: CircleAvatar(
-                child: Text('$index'),
+                child: Text('0'),
                 backgroundColor: Color(0xFF4D6596),
               ),
             ),
@@ -314,6 +336,9 @@ class ChatList extends StatelessWidget {
 }
 
 class EstadoList extends StatelessWidget {
+  final Function eliminarChatFunction;
+
+  EstadoList({required this.eliminarChatFunction});
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -330,12 +355,38 @@ class EstadoList extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"],idPersonDestino: chats[index].idPersonDestino)),
               );
             },
+            onLongPress: () async {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text('Eliminar chat?'),
+                    content: Icon(Icons.warning, color: Colors.red, size: 50),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cancelar', style: TextStyle(color: Colors.black)),
+                        onPressed: () {
+                          Navigator.of(context).pop(0); 
+                        },
+                      ),
+                      TextButton(
+                        child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+                        onPressed: () async {
+                          eliminarChatFunction(index);
+                          Navigator.of(context).pop(1); 
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
             
             child:  ListTile(
               title: Text(namesChats[index]["Nombres"]),
               subtitle: Text(namesChats[index]["mensaje"]),
               leading: CircleAvatar(
-                child: Text('$index'),
+                child: Text('0'),
                 backgroundColor: Color(0xFF4D6596),
               ),
             ),

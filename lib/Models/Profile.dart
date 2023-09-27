@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:admin/services/services_firebase.dart';
 
  
 
@@ -128,56 +129,7 @@ class Member {
 
  
 
-  Future<List<Member>> fetchMembers() async {
-
-    final response =
-
-        await http.get(Uri.parse('http://181.188.191.35:3000/allaccounts'));
-
- 
-
-    if (response.statusCode == 200) {
-
-      final List<dynamic> data = json.decode(response.body);
-
-      final members =
-
-          data.map((memberData) => Member.fromJson(memberData)).toList();
-
-      return members;
-
-    } else {
-
-      throw Exception('Failed to load members');
-
-    }
-
-  }
+  
 
 }
 
- 
-
-Future<Member> getCardByUser(int id) async {
-
-  final response = await http.get(Uri.parse(
-
-      'http://181.188.191.35:3000/cardholderbyuser/' + id.toString()));
-
- 
-
-  if (response.statusCode == 200) {
-
-    final data = json.decode(response.body);
-
-    final member = Member.fromJson(data);
-
-    return member;
-
-  } else {
-
-    throw Exception('Failed to load members');
-
-  }
-
-}

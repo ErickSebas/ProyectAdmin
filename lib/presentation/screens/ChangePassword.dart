@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/Login.dart';
 import 'package:admin/presentation/screens/ProfilePage.dart';
@@ -66,40 +67,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     }
   }
 
-  Future<bool> validate(String code, int userId) async {
-    final url = Uri.parse(
-        'http://181.188.191.35:3000/validateCode?userId=$userId&code=$code');
 
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['success']; // Debe devolver true si el código es válido
-    } else {
-      throw Exception('Error al validar el código OTP');
-    }
-  }
-
-  Future<bool> changePassword(int userId, String newPassword) async {
-    final url = Uri.parse('http://181.188.191.35:3000/changePassword');
-
-    final response = await http.put(
-      url,
-      body: json.encode({
-        'userId': userId,
-        'newPassword': newPassword,
-      }),
-      headers: {'Content-Type': 'application/json'},
-    );
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data[
-          'success']; // Debe devolver true si la contraseña se cambió con éxito
-    } else {
-      throw Exception('Error al cambiar la contraseña');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

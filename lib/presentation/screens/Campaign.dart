@@ -1,5 +1,9 @@
 import 'dart:convert';
 
+import 'package:admin/Implementation/CampaignImplementation.dart';
+import 'package:admin/Implementation/ChatImp.dart';
+import 'package:admin/Implementation/ConversationImp.dart';
+import 'package:admin/Implementation/TokensImp.dart';
 import 'package:admin/Models/ChatModel.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/Models/Profile.dart';
@@ -66,24 +70,14 @@ class CampaignProvider extends ChangeNotifier {
   
 }
 
-  Future<void> tokenClean() async {
-    final url = 'http://181.188.191.35:3000/logouttoken';
-    final response = await http.put(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'token': token,
-      }),
-    );
 
-    if (response.statusCode != 200) {
-      throw Exception('Error al enviar el mensaje');
-    }
-  }
+  class CampaignPage extends StatefulWidget {
+  @override
+  _CampaignStateState createState() => _CampaignStateState();
+}
 
-class CampaignPage extends StatelessWidget {
+class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderStateMixin {
+
   @override
   Widget build(BuildContext context) {
     final searchField = Padding(
@@ -353,4 +347,9 @@ class CampaignPage extends StatelessWidget {
       ),
     );
   }
+
+  
+
 }
+
+
