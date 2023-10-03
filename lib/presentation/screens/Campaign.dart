@@ -222,7 +222,6 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
                       ) 
                     }
                   });
-                  print(filteredList[0].idPersonDestino);
                   
                 }else{
                   Navigator.pushReplacement(
