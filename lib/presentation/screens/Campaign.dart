@@ -51,7 +51,7 @@ class CampaignProvider extends ChangeNotifier {
   }
 
   Future<void> loadCampaigns() async {
-    campaigns1 = await fetchCampaigns();
+    //campaigns1 = await fetchCampaigns();
     
     notifyListeners();
   }

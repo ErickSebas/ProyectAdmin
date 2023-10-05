@@ -343,7 +343,7 @@ class _LoginPage extends State<LoginPage> {
                 onPressed: () async {
                   final loggedInMember = await authenticateHttp(emailController.text, md5.convert(utf8.encode(passwordController.text)).toString());
 
-                  if (loggedInMember != null) {
+                  if (loggedInMember != null&&loggedInMember.role!="Cliente") {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(

@@ -1,17 +1,18 @@
 import 'dart:convert';
-
+import 'package:admin/services/services_firebase.dart';
 import 'package:admin/Models/CampaignModel.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 
 Future<List<Campaign>> fetchCampaigns() async {
   final response = await http
-      .get(Uri.parse('http://181.188.191.35:3000/campanas'));
+    .get(Uri.parse('http://181.188.191.35:3000/campanas'));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
   } else {
-    throw Exception('Failed to load campaigns');
+    throw Exception('Failed to load Campana');
   }
 }
 
@@ -24,7 +25,7 @@ Future<int> getNextIdCampana() async {
     var res = jsonResponse[0]['AUTO_INCREMENT'];
     return res;
   } else {
-    throw Exception('Failed to load id');
+    throw Exception('Failed to load next id Camana');
   }
 }
 
