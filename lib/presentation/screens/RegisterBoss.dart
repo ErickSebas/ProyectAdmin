@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:admin/Implementation/CardholderImp.dart';
 import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Cardholder.dart';
 import 'package:admin/presentation/screens/List_members.dart';
+import 'package:admin/presentation/screens/camera_screen.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,6 +14,9 @@ import 'package:provider/provider.dart';
 import 'Campaign.dart';
 import 'LocationPicker.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:camera/camera.dart';
+import 'package:image/image.dart' as img;
+import 'dart:typed_data';
 
 void main() => runApp(MyApp());
 
@@ -54,6 +60,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   int idJefe = 0;
   int idPerson = 0;
   Member? jefeDeCarnetizador;
+  String locationName = ''; // Esta variable almacenará la dirección
 
   void initState() {
     super.initState();
@@ -75,18 +82,17 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     latitude = widget.userData!.latitud.toString();
     longitude = widget.userData!.longitud.toString();
     email = widget.userData!.correo;
-    if(esCarnetizador){
+    if (esCarnetizador) {
       jefeDeCarnetizador = await getCardByUser(widget.userData!.id);
       nameJefe = jefeDeCarnetizador!.names;
       idJefe = jefeDeCarnetizador!.id;
     }
-    
+
     setState(() {});
   }
 
   Future<void> registerUser() async {
-    final url =
-        Uri.parse('http://181.188.191.35:3000/register');
+    final url = Uri.parse('http://181.188.191.35:3000/register');
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
     } else if (selectedRole == 'Jefe de Brigada') {
@@ -117,7 +123,6 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
     if (response.statusCode == 200) {
       // Registro exitoso
-      
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al registrar el usuario')),
@@ -125,9 +130,87 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     }
   }
 
+  Future<void> handleCameraAndImageProcessing() async {
+    final cameras = await availableCameras();
+
+    if (cameras.isEmpty) {
+      print('No se encontraron cámaras disponibles.');
+      return;
+    }
+
+    final firstCamera = cameras.first;
+
+    // Inicializa el controlador de la cámara
+    final cameraController =
+        CameraController(firstCamera, ResolutionPreset.high);
+    await cameraController.initialize();
+
+    // Abre la cámara en una nueva pantalla
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CameraScreen(cameraController),
+      ),
+    );
+
+    if (result != null) {
+      // Realiza el procesamiento de la imagen
+      // Trabaja con la ruta del archivo directamente
+      img.Image image = img.decodeImage(File(result).readAsBytesSync())!;
+
+      if (image.width > 1080) {
+        // Cambia la resolución a 720
+        image = img.copyResize(image, width: 720);
+      }
+
+      // Convierte la imagen a Base64
+      final imageBase64 = base64Encode(image.getBytes());
+
+      // Muestra la imagen en la consola
+      print(imageBase64);
+    }
+  }
+
+  Future<void> validarPersonaEnBaseDeDatos() async {
+    final idPersona = idPerson; // Ajusta esto según tus necesidades
+    final url = Uri.parse('http://181.188.191.35:3000/personaimage/$idPersona');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      if (jsonData.isNotEmpty) {
+        // La persona existe en la base de datos, puedes abrir la cámara aquí.
+        await handleCameraAndImageProcessing();
+      } else {
+        // La persona no existe, realiza la inserción en la base de datos.
+        final insertUrl = Uri.parse('http://181.188.191.35:3000/InsIdEnImagen');
+        final insertResponse = await http.post(
+          insertUrl,
+          body: jsonEncode({'IdPersona': idPersona}),
+          headers: {'Content-Type': 'application/json'},
+        );
+
+        if (insertResponse.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('La persona se insertó en la base de datos')),
+          );
+          // Aquí puedes abrir la cámara después de la inserción exitosa.
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text('Error al insertar la persona en la base de datos')),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> updateUser() async {
-    final url =
-        Uri.parse('http://181.188.191.35:3000/update/'+idPerson.toString()); //
+    final url = Uri.parse(
+        'http://181.188.191.35:3000/update/' + idPerson.toString()); //
     if (selectedRole == 'Administrador') {
       idRolSeleccionada = 1;
     } else if (selectedRole == 'Jefe de Brigada') {
@@ -140,7 +223,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     final response = await http.put(
       url,
       body: jsonEncode({
-        'id' : idPerson,
+        'id': idPerson,
         'Nombres': nombre,
         'Apellidos': apellido,
         'FechaNacimiento': datebirthday.toIso8601String(),
@@ -156,29 +239,28 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
 
     if (response.statusCode == 200) {
       // Registro exitoso
-      
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al registrar el usuario')),
       );
     }
 
-    if(miembroActual!.id==widget.userData!.id){
-      miembroActual!.names= nombre;
-      miembroActual!.lastnames= apellido;
-      miembroActual!.fechaNacimiento= datebirthday;
-      miembroActual!.carnet= carnet;
-      miembroActual!.telefono= int.parse(telefono);
-      miembroActual!.role= selectedRole!;
-      miembroActual!.latitud= double.parse(latitude);
-      miembroActual!.longitud= double.parse(longitude);
-      miembroActual!.correo= email;
+    if (miembroActual!.id == widget.userData!.id) {
+      miembroActual!.names = nombre;
+      miembroActual!.lastnames = apellido;
+      miembroActual!.fechaNacimiento = datebirthday;
+      miembroActual!.carnet = carnet;
+      miembroActual!.telefono = int.parse(telefono);
+      miembroActual!.role = selectedRole!;
+      miembroActual!.latitud = double.parse(latitude);
+      miembroActual!.longitud = double.parse(longitude);
+      miembroActual!.correo = email;
     }
   }
 
   Future<void> registerJefeCarnetizador() async {
-    final url = Uri.parse(
-        'http://181.188.191.35:3000/registerjefecarnetizador');
+    final url =
+        Uri.parse('http://181.188.191.35:3000/registerjefecarnetizador');
 
     final response = await http.post(
       url,
@@ -199,9 +281,28 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     }
   }
 
+  Future<String> getAddressFromLatLng(
+      double lat, double lng, String apiKey) async {
+    final url = Uri.https(
+      'maps.googleapis.com',
+      '/maps/api/geocode/json',
+      {'latlng': '$lat,$lng', 'key': apiKey},
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body);
+      if (json['status'] == 'OK' && json['results'].isNotEmpty) {
+        return json['results'][0]['formatted_address'];
+      }
+    }
+
+    return 'No se pudo obtener la dirección';
+  }
+
   Future<void> updateJefeCarnetizador() async {
-    final url = Uri.parse(
-        'http://181.188.191.35:3000/updatejefecarnetizador');
+    final url = Uri.parse('http://181.188.191.35:3000/updatejefecarnetizador');
 
     final response = await http.put(
       url,
@@ -250,16 +351,17 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
             icon: Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               esCarnetizador = false;
-              widget.isUpdate==false?
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider(
-                    create: (context) => CampaignProvider(),
-                    child: CampaignPage(),
-                  ),
-                ),
-              ):Navigator.pop(context);
+              widget.isUpdate == false
+                  ? Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider(
+                          create: (context) => CampaignProvider(),
+                          child: CampaignPage(),
+                        ),
+                      ),
+                    )
+                  : Navigator.pop(context);
             },
           ),
         ),
@@ -277,12 +379,24 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                   width: 100,
                 ),
               ),
+              widget.isUpdate
+                  ? ElevatedButton(
+                      onPressed: () async {
+                        await validarPersonaEnBaseDeDatos();
+                      },
+                      child: Text('Validar Persona en la Base de Datos'),
+                      style: ElevatedButton.styleFrom(
+                        primary: Color(0xFF1A2946),
+                      ),
+                    )
+                  : Container(), // Esto evitará que aparezca el botón en el modo de registro
               _buildTextField(
                 initialData: nombre,
                 label: 'Nombres',
                 onChanged: (value) => nombre = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
+                icon: Icons.person,
               ),
               _buildTextField(
                 initialData: apellido,
@@ -290,61 +404,95 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 onChanged: (value) => apellido = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El nombre no puede estar vacío.' : null,
+                icon: Icons.person,
               ),
               SizedBox(height: 10),
-              Text("Fecha Nacimiento:", style: TextStyle(color: Colors.white)),
+              Row(
+                children: [
+                  Icon(
+                    Icons.date_range, // Cambia esto al icono que prefieras
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    "Fecha Nacimiento",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
               _buildDateOfBirthField(
                 label: 'Fecha Nacimiento',
                 onChanged: (value) => datebirthday = value,
               ),
               _buildTextField(
-                initialData: carnet,
-                label: 'Carnet',
-                onChanged: (value) => carnet = value,
-                validator: (value) =>
-                    value!.isEmpty ? 'El carnet no puede estar vacío.' : null,
-              ),
+                  initialData: carnet,
+                  label: 'Carnet de identidad',
+                  onChanged: (value) => carnet = value,
+                  validator: (value) =>
+                      value!.isEmpty ? 'El carnet no puede estar vacío.' : null,
+                  icon: Icons.badge),
               _buildTextField(
                 initialData: telefono,
                 label: 'Teléfono',
                 onChanged: (value) => telefono = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El Teléfono no puede estar vacía.' : null,
+                icon: Icons.call,
                 keyboardType: TextInputType.number,
               ),
-              DropdownButton<String>(
-                hint: Text('Rol', style: TextStyle(color: Colors.white)),
-                value: selectedRole,
-                dropdownColor: Colors.grey[850],
-                style: TextStyle(color: Colors.white),
-                items: <String>[
-                  'Jefe de Brigada',
-                  'Carnetizador',
-                  'Administrador'
-                ].map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (newValue) {
-                  setState(() {
-                    selectedRole = newValue!;
-                    if (newValue == "Carnetizador") {
-                      esCarnetizador = true;
-                    } else {
-                      esCarnetizador = false;
-                    }
-                  });
-                },
-              ),
+              Row(children: [
+                Icon(
+                  Icons.list_alt, // Cambia esto al icono que prefieras
+                  color: Colors.white,
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: DropdownButton<String>(
+                    hint: Text('Rol', style: TextStyle(color: Colors.white)),
+                    value: selectedRole,
+                    dropdownColor: Colors.grey[850],
+                    style: TextStyle(color: Colors.white),
+                    items: <String>[
+                      'Jefe de Brigada',
+                      'Carnetizador',
+                      'Administrador'
+                    ].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        selectedRole = newValue!;
+                        if (newValue == "Carnetizador") {
+                          esCarnetizador = true;
+                        } else {
+                          esCarnetizador = false;
+                        }
+                      });
+                    },
+                  ),
+                )
+              ]),
               esCarnetizador
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 10),
-                        Text("Seleccionar Jefe:",
-                            style: TextStyle(color: Colors.white)),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.hail, // Cambia esto al icono que prefieras
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 10),
+                            Text(
+                              "Seleccionar Jefe",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                         Container(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -375,7 +523,19 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     )
                   : Container(),
               SizedBox(height: 10),
-              Text("Dirección:", style: TextStyle(color: Colors.white)),
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on, // Cambia esto al icono que prefieras
+                    color: Colors.white,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    "Seleccionar Ubicacion",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
               ElevatedButton(
                 child: Text("Selecciona una ubicación"),
                 onPressed: () async {
@@ -387,9 +547,15 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     ),
                   );
                   if (result != null) {
+                    final address = await getAddressFromLatLng(
+                      result.latitude,
+                      result.longitude,
+                      'AIzaSyBaqF8pGcAaGUm7oE3KbHWsjUfBdCEBujM',
+                    );
                     setState(() {
                       latitude = result.latitude.toString();
                       longitude = result.longitude.toString();
+                      locationName = address;
                     });
                   }
                 },
@@ -400,7 +566,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  latitude + " " + longitude,
+                  locationName,
                   style: TextStyle(color: Colors.white),
                 ),
               ),
@@ -410,15 +576,17 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 onChanged: (value) => email = value,
                 validator: (value) =>
                     value!.isEmpty ? 'El email no puede estar vacío.' : null,
+                icon: Icons.mail,
                 keyboardType: TextInputType.emailAddress,
               ),
-              widget.isUpdate?Container():
-              _buildTextField(
-                initialData: "",
-                label: 'Contraseña',
-                onChanged: (value) => password = value,
-                obscureText: true,
-              ),
+              widget.isUpdate
+                  ? Container()
+                  : _buildTextField(
+                      initialData: "",
+                      label: 'Contraseña',
+                      onChanged: (value) => password = value,
+                      obscureText: true,
+                      icon: Icons.password),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
@@ -428,38 +596,31 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                       _formKey.currentState!.validate() &&
                       latitude != '' &&
                       selectedRole != '' &&
-                      datebirthday != null  &&
+                      datebirthday != null &&
                       nameJefe != '') {
-
-                      if(widget.isUpdate){
-
-                        await updateUser();
-                        await updateJefeCarnetizador();
-                        Mostrar_Finalizado(context, "Actualización Completado");
-                        
-                      }else if(password != ""){
-                        dateCreation = new DateTime.now();
-                        status = 1;
-                        await registerUser();
-                        idPerson = await getNextIdPerson();
-                        await registerJefeCarnetizador();
-                        Mostrar_Finalizado(context, "Registro Completado");
-                      }
-                      esCarnetizador = false;
-                      
-
+                    if (widget.isUpdate) {
+                      await updateUser();
+                      await updateJefeCarnetizador();
+                      Mostrar_Finalizado(context, "Actualización Completado");
+                    } else if (password != "") {
+                      dateCreation = new DateTime.now();
+                      status = 1;
+                      await registerUser();
+                      idPerson = await getNextIdPerson();
+                      await registerJefeCarnetizador();
+                      Mostrar_Finalizado(context, "Registro Completado");
+                    }
+                    esCarnetizador = false;
                   } else {
                     if (esCarnetizador == false &&
                         _formKey.currentState!.validate() &&
                         latitude != '' &&
                         selectedRole != '' &&
-                        datebirthday != null 
-                        ) {
-                      
-                      if(widget.isUpdate){
+                        datebirthday != null) {
+                      if (widget.isUpdate) {
                         await updateUser();
                         Mostrar_Finalizado(context, "Actualización Completado");
-                      }else if(password != ""){
+                      } else if (password != "") {
                         dateCreation = new DateTime.now();
                         status = 1;
                         await registerUser();
@@ -467,7 +628,6 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                       }
 
                       esCarnetizador = false;
-                      
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Ingrese todos los campos')),
@@ -475,7 +635,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     }
                   }
                 },
-                child: Text(widget.isUpdate?'Actualizar':'Registrar'),
+                child: Text(widget.isUpdate ? 'Actualizar' : 'Registrar'),
                 style: ElevatedButton.styleFrom(
                   primary: Color(0xFF1A2946),
                 ),
@@ -532,20 +692,38 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
     bool obscureText = false,
+    IconData? icon, // El IconData del icono que deseas agregar
   }) {
     return Column(
       children: [
-        TextFormField(
-          initialValue: initialData,
-          style: TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: TextStyle(color: Colors.white),
-          ),
-          onChanged: onChanged,
-          validator: validator,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
+        Row(
+          children: [
+            if (icon != null)
+              // Verifica si se proporcionó un icono
+              Padding(
+                padding: const EdgeInsets.all(
+                    0), // Ajusta el espacio según sea necesario
+                child: Icon(
+                  icon,
+                  color:
+                      Colors.white, // Establece el color del icono como blanco
+                ),
+              ),
+            Expanded(
+              child: TextFormField(
+                initialValue: initialData,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: TextStyle(color: Colors.white),
+                ),
+                onChanged: onChanged,
+                validator: validator,
+                keyboardType: keyboardType,
+                obscureText: obscureText,
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 15),
       ],

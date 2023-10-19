@@ -42,7 +42,7 @@ android {
 
     defaultConfig {
         applicationId "com.sedes.maypivacadmin"
-        minSdkVersion 20
+        minSdkVersion 21
         targetSdkVersion 31
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
