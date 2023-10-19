@@ -348,7 +348,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: Text('Eliminar chat?'),
+                            title: Text('Eliminar Campaña?'),
                             content: Icon(Icons.warning, color: Colors.red, size: 50),
                             actions: <Widget>[
                               TextButton(
