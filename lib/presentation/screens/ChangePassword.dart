@@ -67,19 +67,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF4D6596),
+        backgroundColor: Color.fromARGB(255, 92, 142, 203),
         centerTitle: true,
         title: Text('Cambiar Contraseña'),
         leading: isLogin == 0
             ? Builder(
                 builder: (context) => IconButton(
-                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Icon(Icons.arrow_back,
+                      color: Color.fromARGB(255, 92, 142, 203)),
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
@@ -94,11 +93,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             : Container(),
       ),
       body: Container(
-        color: Color(0xFF4D6596),
+        color: Color.fromARGB(255, 255, 255, 255),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              Text('Cambiar Contraseña'),
+              SizedBox(height: 10),
               PinCodeTextField(
                 appContext: context,
                 length: 5,
@@ -125,9 +126,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                   inactiveFillColor: Colors.transparent,
                   selectedFillColor: Colors.transparent,
                 ),
-                cursorColor: Colors.white,
+                cursorColor: Color.fromARGB(255, 92, 142, 203),
                 textStyle: TextStyle(
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 92, 142, 203),
                   fontSize: 20.0,
                 ),
                 enableActiveFill: true,
@@ -136,32 +137,64 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               _showPasswordFields
                   ? Column(
                       children: [
-                        TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Contraseña',
-                            labelStyle:
-                                TextStyle(fontSize: 16, color: Colors.white),
-                          ),
-                          onChanged: (value) => _password = value,
-                          validator: (value) =>
-                              value!.isEmpty ? 'Campo requerido' : null,
-                          obscureText: true,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lock, // Icono de candado
+                              color: Color.fromARGB(
+                                  255, 92, 142, 203), // Color del icono
+                            ),
+                            SizedBox(
+                                width:
+                                    10), // Espacio entre el icono y el campo de texto
+                            Expanded(
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: 'Contraseña',
+                                  labelStyle: TextStyle(
+                                    fontSize: 16,
+                                    color: Color.fromARGB(255, 92, 142, 203),
+                                  ),
+                                ),
+                                onChanged: (value) => _password = value,
+                                validator: (value) =>
+                                    value!.isEmpty ? 'Campo requerido' : null,
+                                obscureText: true,
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(height: 16),
-                        TextFormField(
-                          decoration: InputDecoration(
-                            labelText: 'Confirmar Contraseña',
-                            labelStyle:
-                                TextStyle(fontSize: 16, color: Colors.white),
-                          ),
-                          onChanged: (value) => _confirmPassword = value,
-                          validator: (value) {
-                            if (value!.isEmpty) return 'Campo requerido';
-                            if (value != _password)
-                              return 'Las contraseñas no coinciden';
-                            return null;
-                          },
-                          obscureText: true,
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lock, // Icono de candado
+                              color: Color.fromARGB(
+                                  255, 92, 142, 203), // Color del icono
+                            ),
+                            SizedBox(
+                                width:
+                                    10), // Espacio entre el icono y el campo de texto
+                            Expanded(
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: 'Confirmar Contraseña',
+                                  labelStyle: TextStyle(
+                                    fontSize: 16,
+                                    color: Color.fromARGB(255, 92, 142, 203),
+                                  ),
+                                ),
+                                onChanged: (value) => _confirmPassword = value,
+                                validator: (value) {
+                                  if (value!.isEmpty) return 'Campo requerido';
+                                  if (value != _password)
+                                    return 'Las contraseñas no coinciden';
+                                  return null;
+                                },
+                                obscureText: true,
+                              ),
+                            ),
+                          ],
                         ),
                         SizedBox(height: 32),
                         ElevatedButton(
@@ -225,6 +258,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                             shape: RoundedRectangleBorder(
                               borderRadius:
                                   BorderRadius.circular(20), // Radio de borde
+                              side: BorderSide(
+                                color: Color.fromARGB(
+                                    255, 92, 142, 203), // Color del borde
+                                width: 2.0, // Ancho del borde
+                              ),
                             ),
                           ),
                         ),
@@ -255,13 +293,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 child: Text('Cancelar'),
                 style: ElevatedButton.styleFrom(
                   primary: Color(0xFF4D6596), // Fondo color 0xFF4D6596
-                  onPrimary: Colors.white, // Texto blanco
+                  onPrimary: Color.fromARGB(255, 255, 255, 255), // Texto blanco
                   minimumSize:
                       Size(double.infinity, 50), // Ancho igual y altura de 50
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20), // Radio de borde
                     side: BorderSide(
-                      color: Colors.white, // Color del borde (blanco)
+                      color: Color.fromARGB(
+                          255, 92, 142, 203), // Color del borde (blanco)
                       width: 1.0, // Grosor del borde
                     ),
                   ),

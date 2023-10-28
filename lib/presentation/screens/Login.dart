@@ -1,19 +1,25 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Profile.dart';
 import 'package:admin/presentation/screens/ChangePassword.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'HomeClient.dart';
 import 'Campaign.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'dart:ui' as ui;
+import 'package:image/image.dart' as img;
+import 'dart:typed_data';
 
 void main() => runApp(MyApp());
 
@@ -36,6 +42,7 @@ class _LoginPage extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   int? memberId = 0;
+  Image? userImage; // Variable global para almacenar la imagen
 
   Member? globalLoggedInMember;
 
@@ -43,6 +50,35 @@ class _LoginPage extends State<LoginPage> {
   void initState() {
     super.initState();
     if (mounted) tryAutoLogin(context);
+  }
+
+  Future<void> downloadBase64ImageAndSave(int imageId) async {
+    final url = Uri.parse('http://181.188.191.35:3000/getImage?id=$imageId');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final base64Image = data['imageString'];
+
+      if (base64Image != null) {
+        // Decodifica los datos base64 en bytes
+        final Uint8List bytes = base64.decode(base64Image);
+
+        // Obtiene la ruta del directorio de documentos
+        final documentsDir = await getApplicationDocumentsDirectory();
+        imagePath = '${documentsDir.path}/foto-perfil.png';
+
+        // Guarda los bytes en el sistema de archivos local
+        File(imagePath!).writeAsBytesSync(bytes);
+
+        print('Imagen descargada y guardada con éxito en $imagePath.');
+      } else {
+        print('No se pudo obtener la imagen base64 de la API.');
+      }
+    } else {
+      print(
+          'Error al descargar la imagen desde la API: ${response.statusCode}');
+    }
   }
 
   Future<Member?> authenticateHttp(String email, String password) async {
@@ -58,6 +94,7 @@ class _LoginPage extends State<LoginPage> {
 
       miembroActual = member;
       await saveMemberIdToCache(member.id);
+      downloadBase64ImageAndSave(member.id);
 
       insertToken();
 
@@ -168,6 +205,7 @@ class _LoginPage extends State<LoginPage> {
     print(memberId);
     if (memberId != 0 && memberId != null) {
       // Si existe un memberId en la caché, realizar una solicitud HTTP para obtener detalles del miembro.
+      await downloadBase64ImageAndSave(memberId!);
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -192,6 +230,7 @@ class _LoginPage extends State<LoginPage> {
 
       final member = await fetchMemberById(memberId!);
       miembroActual = member;
+
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
         if (member != null) {
@@ -210,8 +249,6 @@ class _LoginPage extends State<LoginPage> {
       }
     }
   }
-
-
 
   Future<void> saveMemberIdToCache(int memberId) async {
     final prefs = await SharedPreferences.getInstance();
@@ -341,9 +378,14 @@ class _LoginPage extends State<LoginPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  final loggedInMember = await authenticateHttp(emailController.text, md5.convert(utf8.encode(passwordController.text)).toString());
+                  final loggedInMember = await authenticateHttp(
+                      emailController.text,
+                      md5
+                          .convert(utf8.encode(passwordController.text))
+                          .toString());
 
-                  if (loggedInMember != null&&loggedInMember.role!="Cliente") {
+                  if (loggedInMember != null &&
+                      loggedInMember.role != "Cliente") {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(

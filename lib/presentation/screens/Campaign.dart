@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:admin/Implementation/CampaignImplementation.dart';
 import 'package:admin/Implementation/ChatImp.dart';
 import 'package:admin/Implementation/ConversationImp.dart';
@@ -7,7 +8,6 @@ import 'package:admin/Implementation/TokensImp.dart';
 import 'package:admin/Models/ChatModel.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/Models/Profile.dart';
-import 'package:admin/presentation/screens/Accounts.dart';
 import 'package:admin/presentation/screens/List_members.dart';
 import 'package:admin/presentation/screens/Login.dart';
 import 'package:admin/presentation/screens/ProfilePage.dart';
@@ -18,12 +18,14 @@ import 'package:admin/presentation/screens/RegisterCampaign.dart';
 import 'package:admin/presentation/screens/RegisterCardholders.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 int estadoPerfil = 0;
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -45,14 +47,13 @@ class MyApp extends StatelessWidget {
 class CampaignProvider extends ChangeNotifier {
   List<Campaign> campaigns1 = campaigns;
 
-
   CampaignProvider() {
     //loadCampaigns();
   }
 
   Future<void> loadCampaigns() async {
     //campaigns1 = await fetchCampaigns();
-    
+
     notifyListeners();
   }
 
@@ -66,39 +67,42 @@ class CampaignProvider extends ChangeNotifier {
 
     notifyListeners();
   }
-
-  
 }
 
-
-  class CampaignPage extends StatefulWidget {
+class CampaignPage extends StatefulWidget {
   @override
   _CampaignStateState createState() => _CampaignStateState();
 }
 
-class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderStateMixin {
+class _CampaignStateState extends State<CampaignPage>
+    with SingleTickerProviderStateMixin {
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     final searchField = Padding(
       padding: const EdgeInsets.all(12),
       child: TextFormField(
-        style: TextStyle(color: Colors.white),
+        style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
         decoration: InputDecoration(
           hintText: 'Buscar',
-          hintStyle: TextStyle(color: Colors.white54),
-          prefixIcon: Icon(Icons.search, color: Colors.white),
+          hintStyle: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+          prefixIcon:
+              Icon(Icons.search, color: Color.fromARGB(255, 92, 142, 203)),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide(color: Colors.white),
+            borderSide: BorderSide(color: Color.fromARGB(255, 92, 142, 203)),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide(color: Colors.white),
+            borderSide: BorderSide(color: Color.fromARGB(255, 92, 142, 203)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide(color: Colors.white),
+            borderSide: BorderSide(color: Color.fromARGB(255, 92, 142, 203)),
           ),
         ),
         onChanged: (value) {
@@ -108,9 +112,9 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
     );
 
     return Scaffold(
-      backgroundColor: Color(0xFF4D6596),
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: Color(0xFF4D6596),
+        backgroundColor: Color.fromARGB(255, 92, 142, 203),
         title: Text('Campañas', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: Builder(
@@ -126,7 +130,7 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
           children: <Widget>[
             DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Color(0xFF4D6596),
+                  color: Color.fromRGBO(77, 101, 150, 1),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -135,11 +139,6 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          backgroundImage:
-                              AssetImage('assets/perritoProfile.png'),
-                          radius: 30,
-                        ),
                         SizedBox(height: 10),
                         Column(
                           children: [
@@ -191,7 +190,10 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => RegisterBossPage(isUpdate: false,)),
+                  MaterialPageRoute(
+                      builder: (context) => RegisterBossPage(
+                            isUpdate: false,
+                          )),
                 );
               },
             ),
@@ -199,39 +201,55 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
               leading: Icon(Icons.message),
               title: Text('Mensaje'),
               onTap: () async {
-                if(miembroActual!.role=='Cliente'){
-                  Chat chatCliente = Chat(idChats: 0, idPerson: null, idPersonDestino: miembroActual!.id, fechaActualizacion: DateTime.now());
-                  int lastId =0;
-                  List<Chat> filteredList=[];
+                if (miembroActual!.role == 'Cliente') {
+                  Chat chatCliente = Chat(
+                      idChats: 0,
+                      idPerson: null,
+                      idPersonDestino: miembroActual!.id,
+                      fechaActualizacion: DateTime.now());
+                  int lastId = 0;
+                  List<Chat> filteredList = [];
                   await fetchChatsClient().then((value) => {
-                    filteredList = value.where((element) => element.idPersonDestino == miembroActual!.id).toList(),
-                    if(filteredList.isEmpty){
-                      registerNewChat(chatCliente).then((value) => {
-                        getLastIdChat().then((value) => {
-                          lastId = value,
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ChatPage(idChat: lastId, nombreChat: 'Soporte',idPersonDestino: 0,)),
-                          ) 
-                        })
-                      })
-                    }else{
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ChatPage(idChat: filteredList[0].idChats, nombreChat: 'Soporte', idPersonDestino: 0,)),
-                      ) 
-                    }
-                  });
-                  
-                }else{
+                        filteredList = value
+                            .where((element) =>
+                                element.idPersonDestino == miembroActual!.id)
+                            .toList(),
+                        if (filteredList.isEmpty)
+                          {
+                            registerNewChat(chatCliente).then((value) => {
+                                  getLastIdChat().then((value) => {
+                                        lastId = value,
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) => ChatPage(
+                                                    idChat: lastId,
+                                                    nombreChat: 'Soporte',
+                                                    idPersonDestino: 0,
+                                                  )),
+                                        )
+                                      })
+                                })
+                          }
+                        else
+                          {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ChatPage(
+                                        idChat: filteredList[0].idChats,
+                                        nombreChat: 'Soporte',
+                                        idPersonDestino: 0,
+                                      )),
+                            )
+                          }
+                      });
+                } else {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => ChatScreenState()),
+                    MaterialPageRoute(builder: (context) => ChatScreenState()),
                   );
                 }
-                
-                
               },
             ),
             ListTile(
@@ -291,15 +309,21 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
                     return Card(
                       elevation: 4.0,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
+                        borderRadius: BorderRadius.circular(10.0),
+                        side: BorderSide(
+                          color: Color.fromARGB(
+                              255, 92, 142, 203), // Color del borde
+                          width: 2.0, // Ancho del borde
+                        ),
                       ),
                       margin: const EdgeInsets.all(10.0),
                       child: ListTile(
                         title: Text(
                           provider.campaigns1[index].nombre,
                           style: TextStyle(
-                              color: Color(0xFF4D6596),
-                              fontWeight: FontWeight.bold),
+                            color: Color(0xFF4D6596),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         subtitle: Text(
                           provider.campaigns1[index].descripcion,
@@ -309,9 +333,10 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => RegisterCampaignPage(
-                                      initialData: provider.campaigns1[index],
-                                    )),
+                              builder: (context) => RegisterCampaignPage(
+                                initialData: provider.campaigns1[index],
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -346,9 +371,4 @@ class _CampaignStateState extends State<CampaignPage> with SingleTickerProviderS
       ),
     );
   }
-
-  
-
 }
-
-

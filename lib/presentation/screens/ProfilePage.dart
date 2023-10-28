@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'dart:convert';
@@ -99,10 +100,11 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Perfil de ${member!.names}"),
-        backgroundColor: Color(0xFF4D6596),
+        backgroundColor: Color.fromARGB(255, 92, 142, 203),
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back,
+                color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
               if (estadoPerfil == 0) {
                 Navigator.pushReplacement(
@@ -123,14 +125,14 @@ class ProfilePage extends StatelessWidget {
         ),
       ),
       body: Container(
-        color: Color(0xFF4D6596),
+        color: Color.fromARGB(255, 255, 255, 255),
         child: Column(
           children: [
             FractionallySizedBox(
               widthFactor: 1.0,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 92, 142, 203),
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(80),
                     bottomRight: Radius.circular(80),
@@ -145,13 +147,13 @@ class ProfilePage extends StatelessWidget {
                       style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF4D6596)),
+                          color: Colors.white),
                     ),
                     Text(
                       "${member!.role}",
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.grey,
+                        color: Color.fromARGB(255, 10, 10, 10),
                       ),
                     ),
                   ],
@@ -183,16 +185,20 @@ class ProfilePage extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => RegisterBossPage(
-                                        isUpdate: true, userData: member)),
+                                  builder: (context) => RegisterBossPage(
+                                      isUpdate: true, userData: member),
+                                ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              primary: Color.fromARGB(255, 255, 255, 255),
+                              primary: Colors.white, // Fondo blanco
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 30, vertical: 15),
+                                  horizontal: 45, vertical: 15),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30.0),
+                                side: BorderSide(
+                                    color: Color.fromARGB(255, 92, 142, 203),
+                                    width: 3.0), // Bordes del color deseado
                               ),
                             ),
                             child: Text(
@@ -223,35 +229,78 @@ class ProfilePage extends StatelessWidget {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         primary: Color(0xFF4D6596),
-        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
         ),
       ),
       onPressed: () async {
-        // Envía el correo y actualiza la base de datos
-        final success = await sendEmailAndUpdateCode(member!.id);
-
-        if (success) {
-          await Mostrar_Mensaje(
-              context, "Se ha enviado un código a tu correo electrónico.");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ChangePasswordPage(
-                member: member,
-              ),
-            ),
-          );
-          isLogin = 0;
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text('Ocurrió un error al enviar el código de recuperación.'),
-            ),
-          );
-        }
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return FutureBuilder(
+              future: sendEmailAndUpdateCode(member!.id),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return AlertDialog(
+                    title: Text('Espere unos momentos....'),
+                    content: SingleChildScrollView(
+                      child: ListBody(
+                        children: [
+                          Center(
+                            child: SpinKitFadingCube(
+                              color: Colors.blue,
+                              size: 50.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else if (snapshot.hasError) {
+                  return AlertDialog(
+                    title: Text('Error'),
+                    content: Text(
+                        'Ocurrió un error al enviar el código de recuperación.'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cerrar'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  );
+                } else {
+                  // El proceso se completó con éxito
+                  return AlertDialog(
+                    title: Text('Éxito'),
+                    content: Text(
+                        'Se ha enviado un código a tu correo electrónico.'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text('Cerrar'),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChangePasswordPage(
+                                member: member,
+                              ),
+                            ),
+                          );
+                          isLogin = 0;
+                        },
+                      ),
+                    ],
+                  );
+                }
+              },
+            );
+          },
+        );
       },
       child: Text("Cambiar Contraseña"),
     );
@@ -265,7 +314,8 @@ class ProfilePage extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: 13, horizontal: 20),
       child: RichText(
         text: TextSpan(
-          style: TextStyle(color: Colors.white, fontSize: 20),
+          style:
+              TextStyle(color: Color.fromARGB(255, 92, 142, 203), fontSize: 20),
           children: [
             TextSpan(
               text: "${parts[0]}: ", // Parte del título en negrita

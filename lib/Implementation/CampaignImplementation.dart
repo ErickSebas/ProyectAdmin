@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:admin/services/services_firebase.dart';
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
 
 Future<List<Campaign>> fetchCampaigns() async {
-  final response = await http
-    .get(Uri.parse('http://181.188.191.35:3000/campanas'));
+  final response =
+      await http.get(Uri.parse('http://181.188.191.35:3000/campanas'));
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
@@ -17,8 +20,8 @@ Future<List<Campaign>> fetchCampaigns() async {
 }
 
 Future<int> getNextIdCampana() async {
-  final response = await http.get(Uri.parse(
-      'http://181.188.191.35:3000/nextidcampanas')); //////
+  final response = await http
+      .get(Uri.parse('http://181.188.191.35:3000/nextidcampanas')); //////
   if (response.statusCode == 200) {
     List<dynamic> jsonResponse = json.decode(response.body);
     print(jsonResponse[0]['AUTO_INCREMENT']);
@@ -27,6 +30,29 @@ Future<int> getNextIdCampana() async {
   } else {
     throw Exception('Failed to load next id Camana');
   }
+}
+
+Future<Widget> loadProfileImage() async {
+  final directory = await getTemporaryDirectory();
+  final filePath = '${directory.path}/foto-perfil.png';
+
+  if (await File(filePath).exists()) {
+    final bytes = await File(filePath).readAsBytes();
+    final image = img.decodeImage(Uint8List.fromList(bytes));
+
+    if (image != null) {
+      return CircleAvatar(
+        backgroundImage: MemoryImage(Uint8List.fromList(bytes)),
+        radius: 30,
+      );
+    }
+  }
+
+  // Si la imagen no está disponible, usa una imagen de respaldo
+  return CircleAvatar(
+    backgroundImage: AssetImage('assets/perritoProfile.png'),
+    radius: 30,
+  );
 }
 
 Future<void> registerNewCampaign(Campaign newCampaign) async {

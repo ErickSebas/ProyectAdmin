@@ -108,15 +108,16 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF4D6596),
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: Color(0xFF4D6596),
+        backgroundColor: Color.fromARGB(255, 92, 142, 203),
         title: Text(actualizar ? 'Actualizar Campaña' : 'Registrar Campaña',
-            style: TextStyle(color: Colors.white)),
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back,
+                color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
               Navigator.pushReplacement(
                 context,
@@ -146,19 +147,22 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   Icon(
                     Icons.holiday_village,
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
                       controller: _textController,
-                      style: TextStyle(color: Colors.white),
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                       decoration: InputDecoration(
                         labelText: 'Nombre de la campaña',
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle:
+                            TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                         counterText: "${_textController.text.length}/50",
                         counterStyle: TextStyle(
-                            color: Colors.white), // Estilo del contador
+                            color: Color.fromARGB(
+                                255, 92, 142, 203)), // Estilo del contador
                         // Contador de caracteres
                       ),
                       maxLength: 50, // Límite máximo de caracteres
@@ -187,19 +191,22 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   Icon(
                     Icons.description,
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
                       initialValue: descripcion,
-                      style: TextStyle(color: Colors.white),
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                       decoration: InputDecoration(
                         labelText: 'Descripción',
-                        labelStyle: TextStyle(color: Colors.white),
+                        labelStyle:
+                            TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                         counterText:
                             "${descripcion.length}/160", // Contador de caracteres
-                        counterStyle: TextStyle(color: Colors.white),
+                        counterStyle:
+                            TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                       ),
                       maxLength: 160, // Límite máximo de caracteres
                       onChanged: (value) {
@@ -228,16 +235,18 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   Icon(
                     Icons.list_alt, // Cambia esto al icono que prefieras
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Expanded(
                     child: DropdownButton<String>(
                       hint: Text('Selecciona una categoría',
-                          style: TextStyle(color: Colors.white)),
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 92, 142, 203))),
                       value: categoria,
                       dropdownColor: Colors.grey[850],
-                      style: TextStyle(color: Colors.white),
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                       items: <String>['Vacuna', 'Carnetizacion']
                           .map((String value) {
                         return DropdownMenuItem<String>(
@@ -259,12 +268,12 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   Icon(
                     Icons.date_range, // Cambia esto al icono que prefieras
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Text(
                     "Fecha Inicio",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                   ),
                 ],
               ),
@@ -279,12 +288,12 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 children: [
                   Icon(
                     Icons.date_range, // Cambia esto al icono que prefieras
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Text(
                     "Fecha Final",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                   ),
                 ],
               ),
@@ -297,19 +306,31 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               ElevatedButton(
                 onPressed: estaCargando ? null : Importar_Archivo,
                 style: ElevatedButton.styleFrom(
-                  primary: Color(0xFF1A2946),
+                  primary: Colors.white, // Fondo blanco
+                  onPrimary:
+                      Color.fromARGB(255, 92, 142, 203), // Color del texto
+                  elevation: 0, // Sin sombra
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(5.0), // Borde redondeado
+                    side: BorderSide(
+                      color:
+                          Color.fromARGB(255, 92, 142, 203), // Color del borde
+                    ),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Icon(
                       Icons.cloud_upload,
-                      color: Colors.white,
+                      color: Color.fromARGB(255, 92, 142, 203),
                     ),
                     SizedBox(width: 8), // Espacio entre el icono y el texto
                     Text(
                       'Importar KML',
-                      style: TextStyle(color: Colors.white),
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                     ),
                   ],
                 ),
@@ -317,7 +338,9 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(kml, style: TextStyle(color: Colors.white)),
+                  Text(kml,
+                      style:
+                          TextStyle(color: Color.fromARGB(255, 92, 142, 203))),
                 ],
               ),
               SizedBox(height: 20),
@@ -438,7 +461,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                             gravity: ToastGravity.BOTTOM,
                             timeInSecForIosWeb: 1,
                             backgroundColor: Colors.green,
-                            textColor: Colors.white,
+                            textColor: Color.fromARGB(255, 92, 142, 203),
                             fontSize: 16.0);
                         Mostrar_Finalizado(
                             context, "Se ha registrado con éxito");
@@ -448,7 +471,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     },
                     child: Text(actualizar ? 'Actualizar' : 'Registrar'),
                     style: ElevatedButton.styleFrom(
-                      primary: Color(0xFF1A2946),
+                      primary: Color.fromARGB(255, 92, 142, 203),
                     ),
                   ),
                   ElevatedButton(
@@ -458,7 +481,8 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                         builder: (BuildContext context) {
                           return AlertDialog(
                             title: Text('Eliminar Campaña?'),
-                            content: Icon(Icons.warning, color: Colors.red, size: 50),
+                            content: Icon(Icons.warning,
+                                color: Color(0xFF1A2946), size: 50),
                             actions: <Widget>[
                               TextButton(
                                 child: Text('Cancelar',
@@ -469,7 +493,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                               ),
                               TextButton(
                                 child: Text('Eliminar',
-                                    style: TextStyle(color: Colors.red)),
+                                    style: TextStyle(color: Color(0xFF1A2946))),
                                 onPressed: () async {
                                   deleteCampaignById(id, miembroActual!.id);
                                   await eliminarArchivoDeStorage(id);
@@ -485,7 +509,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     },
                     child: Text('Eliminar'),
                     style: ElevatedButton.styleFrom(
-                      primary: Colors.red,
+                      primary: Color(0xFF1A2946),
                     ),
                   ),
                 ],
@@ -531,6 +555,13 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
       children: [
         Container(
           width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white, // Fondo blanco
+            border: Border.all(
+              color: Color.fromARGB(255, 92, 142, 203), // Color del borde
+            ),
+            borderRadius: BorderRadius.circular(5.0), // Borde redondeado
+          ),
           child: ElevatedButton(
             onPressed: () async {
               fecha = await showDatePicker(
@@ -549,10 +580,11 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               initialDate != null
                   ? "${initialDate.day}/${initialDate.month}/${initialDate.year}"
                   : label,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
             ),
             style: ElevatedButton.styleFrom(
-              primary: Color(0xFF1A2946),
+              primary: Colors.transparent, // Fondo transparente
+              elevation: 0, // Sin sombra
             ),
           ),
         ),

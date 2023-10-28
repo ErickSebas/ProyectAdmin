@@ -1,15 +1,14 @@
 import 'dart:io';
-
 import 'package:admin/Implementation/CardholderImp.dart';
 import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Cardholder.dart';
 import 'package:admin/presentation/screens/List_members.dart';
-import 'package:admin/presentation/screens/camera_screen.dart';
 import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:admin/Models/Profile.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'Campaign.dart';
 import 'LocationPicker.dart';
@@ -17,7 +16,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:camera/camera.dart';
 import 'package:image/image.dart' as img;
 import 'dart:typed_data';
+import 'package:image_picker/image_picker.dart';
 
+Image? image;
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
@@ -60,12 +61,65 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   int idJefe = 0;
   int idPerson = 0;
   Member? jefeDeCarnetizador;
+  late String imageBase64;
   String locationName = ''; // Esta variable almacenará la dirección
+  late img.Image decodedImage =
+      img.Image(1, 1); // Inicialización con una imagen en blanco4
+  late img.Image image = img.Image(1, 1);
+  late Image flutterImage;
+  File? selectedImageFile;
+  late bool otherUser = false;
 
   void initState() {
     super.initState();
     if (widget.userData?.id != null) {
       Cargar_Datos_Persona();
+      flutterImage = Image.file(File(imagePath!));
+      if (miembroActual?.id != widget.userData?.id) {
+        otherUser = true;
+      }
+    }
+  }
+
+  Future<void> deleteLocalImage() async {
+    final file = File(imagePath!);
+    if (await file.exists()) {
+      await file.delete();
+      print('Imagen local eliminada con éxito en $imagePath.');
+    } else {
+      print('La imagen local no existe en $imagePath.');
+    }
+  }
+
+  Future<void> downloadBase64ImageAndSave(int imageId) async {
+    final url = Uri.parse('http://181.188.191.35:3000/getImage?id=$imageId');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final base64Image = data['imageString'];
+
+      if (base64Image != null) {
+        // Decodifica los datos base64 en bytes
+        final Uint8List bytes = base64.decode(base64Image);
+
+        // Obtiene la ruta del directorio de documentos
+        final documentsDir = await getApplicationDocumentsDirectory();
+        imagePath = '${documentsDir.path}/foto-perfil.png';
+
+        // Elimina el archivo existente (si existe)
+        await deleteLocalImage();
+
+        // Escribe la nueva imagen
+        await File(imagePath!).writeAsBytes(bytes);
+
+        print('Imagen descargada y sobrescrita con éxito en $imagePath.');
+      } else {
+        print('No se pudo obtener la imagen base64 de la API.');
+      }
+    } else {
+      print(
+          'Error al descargar la imagen desde la API: ${response.statusCode}');
     }
   }
 
@@ -127,84 +181,6 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al registrar el usuario')),
       );
-    }
-  }
-
-  Future<void> handleCameraAndImageProcessing() async {
-    final cameras = await availableCameras();
-
-    if (cameras.isEmpty) {
-      print('No se encontraron cámaras disponibles.');
-      return;
-    }
-
-    final firstCamera = cameras.first;
-
-    // Inicializa el controlador de la cámara
-    final cameraController =
-        CameraController(firstCamera, ResolutionPreset.high);
-    await cameraController.initialize();
-
-    // Abre la cámara en una nueva pantalla
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CameraScreen(cameraController),
-      ),
-    );
-
-    if (result != null) {
-      // Realiza el procesamiento de la imagen
-      // Trabaja con la ruta del archivo directamente
-      img.Image image = img.decodeImage(File(result).readAsBytesSync())!;
-
-      if (image.width > 1080) {
-        // Cambia la resolución a 720
-        image = img.copyResize(image, width: 720);
-      }
-
-      // Convierte la imagen a Base64
-      final imageBase64 = base64Encode(image.getBytes());
-
-      // Muestra la imagen en la consola
-      print(imageBase64);
-    }
-  }
-
-  Future<void> validarPersonaEnBaseDeDatos() async {
-    final idPersona = idPerson; // Ajusta esto según tus necesidades
-    final url = Uri.parse('http://181.188.191.35:3000/personaimage/$idPersona');
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      if (jsonData.isNotEmpty) {
-        // La persona existe en la base de datos, puedes abrir la cámara aquí.
-        await handleCameraAndImageProcessing();
-      } else {
-        // La persona no existe, realiza la inserción en la base de datos.
-        final insertUrl = Uri.parse('http://181.188.191.35:3000/InsIdEnImagen');
-        final insertResponse = await http.post(
-          insertUrl,
-          body: jsonEncode({'IdPersona': idPersona}),
-          headers: {'Content-Type': 'application/json'},
-        );
-
-        if (insertResponse.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('La persona se insertó en la base de datos')),
-          );
-          // Aquí puedes abrir la cámara después de la inserción exitosa.
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content:
-                    Text('Error al insertar la persona en la base de datos')),
-          );
-        }
-      }
     }
   }
 
@@ -334,6 +310,158 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     }
   }
 
+  Future<String> optimizeImage(String base64String, int maxSizeKB) async {
+    int currentQuality = 100; // Calidad inicial al 100%
+    int maxTries = 10; // Número máximo de intentos de compresión
+    String optimizedBase64 = base64String;
+
+    while (optimizedBase64.length > (maxSizeKB * 1024) &&
+        currentQuality > 0 &&
+        maxTries > 0) {
+      // Decrementa la calidad en 10 unidades (ajusta según tus necesidades)
+      currentQuality -= 10;
+
+      // Decodifica la imagen desde Base64
+      final decodedImage =
+          img.decodeImage(Uint8List.fromList(base64Decode(optimizedBase64)))!;
+
+      // Reduce la calidad de la imagen
+      final compressedBase64 =
+          base64Encode(img.encodeJpg(decodedImage, quality: currentQuality));
+
+      // Actualiza la imagen optimizada
+      optimizedBase64 = compressedBase64;
+
+      maxTries--; // Reduce el número de intentos
+    }
+
+    return optimizedBase64;
+  }
+
+  Future<void> handleCameraAndImageProcessing(final pickedFile) async {
+    if (pickedFile != null) {
+      // Carga la imagen desde el archivo
+      final File imageFile = File(pickedFile.path);
+
+      // Realiza el procesamiento de la imagen
+      final bytes = await imageFile.readAsBytes();
+      img.Image image = img.decodeImage(Uint8List.fromList(bytes))!;
+
+      image = img.copyResize(image, width: 720);
+
+      // Convierte la imagen a Base64
+      final imageBytes = img.encodeJpg(image, quality: 60);
+      final base64String = base64Encode(imageBytes);
+
+      // Optimiza la imagen antes de guardarla
+      imageBase64 = await optimizeImage(base64String, 100);
+
+      // Asegúrate de que imageBase64 tenga los datos correctos antes de usarlos
+      if (imageBase64.isNotEmpty) {
+        // Aquí puedes continuar con el envío de imageBase64 a tu base de datos
+        // También puedes llamar a updatePersonaImage() aquí para actualizar la imagen en la base de datos.
+      } else {
+        // Maneja la situación en la que la conversión a Base64 no fue exitosa
+        print('Error al convertir la imagen a Base64');
+      }
+    }
+  }
+
+  Future<void> updatePersonaImage() async {
+    final url = Uri.parse('http://181.188.191.35:3000/Apersonaimage/$idPerson');
+    final Map<String, dynamic> requestData = {
+      'IdImagen': imageBase64,
+    };
+
+    final response = await http.put(
+      url,
+      body: jsonEncode(requestData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // La actualización fue exitosa
+      print('Actualización exitosa');
+    } else {
+      // Manejar errores aquí
+      print('Error en la actualización: ${response.statusCode}');
+    }
+  }
+
+  Future<void> validarPersonaEnBaseDeDatos() async {
+    final idPersona = idPerson; // Ajusta esto según tus necesidades
+    final url = Uri.parse('http://181.188.191.35:3000/personaimage/$idPersona');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      if (jsonData.isNotEmpty) {
+        // La persona existe en la base de datos, puedes abrir un diálogo para seleccionar una imagen.
+
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Selecciona una imagen"),
+              actions: <Widget>[
+                TextButton(
+                  child: Text("Galería"),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    final pickedFile = await ImagePicker.platform
+                        .pickImage(source: ImageSource.gallery);
+
+                    if (pickedFile != null) {
+                      setState(() {
+                        selectedImageFile = File(pickedFile.path);
+                      });
+                      await handleCameraAndImageProcessing(pickedFile);
+                    }
+                  },
+                ),
+                TextButton(
+                  child: Text("Cámara"),
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    final pickedFile = await ImagePicker.platform
+                        .pickImage(source: ImageSource.camera);
+
+                    if (pickedFile != null) {
+                      // Aquí puedes manejar la imagen capturada desde la cámara.
+                      setState(() {
+                        selectedImageFile = File(pickedFile.path);
+                      });
+                      await handleCameraAndImageProcessing(pickedFile);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // La persona no existe, realiza la inserción en la base de datos.
+        final insertUrl = Uri.parse('http://181.188.191.35:3000/InsIdEnImagen');
+        final insertResponse = await http.post(
+          insertUrl,
+          body: jsonEncode({'IdPersona': idPersona}),
+          headers: {'Content-Type': 'application/json'},
+        );
+
+        if (insertResponse.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text('La persona se insertó en la base de datos')),
+          );
+          // Aquí puedes abrir la cámara después de la inserción exitosa.
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = widget.isUpdate
@@ -341,14 +469,16 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
         : 'Registrar Usuario'; // Título dinámico
 
     return Scaffold(
-      backgroundColor: Color(0xFF4D6596),
+      backgroundColor: Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
-        backgroundColor: Color(0xFF4D6596),
-        title: Text(title, style: TextStyle(color: Colors.white)),
+        backgroundColor: Color.fromARGB(255, 92, 142, 203),
+        title: Text(title,
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: Icon(Icons.arrow_back, color: Colors.white),
+            icon: Icon(Icons.arrow_back,
+                color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
               esCarnetizador = false;
               widget.isUpdate == false
@@ -372,24 +502,53 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
           key: _formKey,
           child: ListView(
             children: [
-              Center(
-                child: Image.asset(
-                  'assets/LogoNew.png',
-                  height: 100,
-                  width: 100,
-                ),
-              ),
-              widget.isUpdate
-                  ? ElevatedButton(
-                      onPressed: () async {
-                        await validarPersonaEnBaseDeDatos();
-                      },
-                      child: Text('Validar Persona en la Base de Datos'),
-                      style: ElevatedButton.styleFrom(
-                        primary: Color(0xFF1A2946),
+              Column(
+                children: <Widget>[
+                  if (!otherUser && widget.isUpdate)
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(
+                                bottom:
+                                    10), // Agrega margen solo en la parte inferior
+                            child: CircleAvatar(
+                              radius: 60,
+                              backgroundImage: selectedImageFile != null
+                                  ? FileImage(selectedImageFile!)
+                                  : flutterImage.image,
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await validarPersonaEnBaseDeDatos();
+                            },
+                            child: Text('Seleccione/Cambie foto de perfil',
+                                style: TextStyle(
+                                    color: Color(
+                                        0xFF4D6596))), // Cambia el color del texto
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.white),
+                              elevation: MaterialStateProperty.all(0),
+                              shape: MaterialStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: Color(0xFF4D6596),
+                                    width: 2.0,
+                                  ),
+                                ),
+                              ),
+                              minimumSize: MaterialStateProperty.all(
+                                  Size(double.infinity, 50)),
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                  : Container(), // Esto evitará que aparezca el botón en el modo de registro
+                    ),
+                ],
+              ),
               _buildTextField(
                 initialData: nombre,
                 label: 'Nombres',
@@ -411,12 +570,12 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 children: [
                   Icon(
                     Icons.date_range, // Cambia esto al icono que prefieras
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Text(
                     "Fecha Nacimiento",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                   ),
                 ],
               ),
@@ -443,15 +602,17 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               Row(children: [
                 Icon(
                   Icons.list_alt, // Cambia esto al icono que prefieras
-                  color: Colors.white,
+                  color: Color.fromARGB(255, 92, 142, 203),
                 ),
                 SizedBox(width: 10),
                 Expanded(
                   child: DropdownButton<String>(
-                    hint: Text('Rol', style: TextStyle(color: Colors.white)),
+                    hint: Text('Rol',
+                        style: TextStyle(
+                            color: Color.fromARGB(255, 92, 142, 203))),
                     value: selectedRole,
                     dropdownColor: Colors.grey[850],
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                     items: <String>[
                       'Jefe de Brigada',
                       'Carnetizador',
@@ -484,12 +645,13 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                           children: [
                             Icon(
                               Icons.hail, // Cambia esto al icono que prefieras
-                              color: Colors.white,
+                              color: Color.fromARGB(255, 92, 142, 203),
                             ),
                             SizedBox(width: 10),
                             Text(
                               "Seleccionar Jefe",
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(
+                                  color: Color.fromARGB(255, 92, 142, 203)),
                             ),
                           ],
                         ),
@@ -527,17 +689,22 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 children: [
                   Icon(
                     Icons.location_on, // Cambia esto al icono que prefieras
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 92, 142, 203),
                   ),
                   SizedBox(width: 10),
                   Text(
                     "Seleccionar Ubicacion",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                   ),
                 ],
               ),
               ElevatedButton(
-                child: Text("Selecciona una ubicación"),
+                child: Text(
+                  "Selecciona una ubicación",
+                  style: TextStyle(
+                    color: Color.fromARGB(255, 92, 142, 203), // Color del texto
+                  ),
+                ),
                 onPressed: () async {
                   await Permisos();
                   final result = await Navigator.push(
@@ -559,15 +726,30 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     });
                   }
                 },
-                style: ElevatedButton.styleFrom(
-                  primary: Color(0xFF1A2946),
+                style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(
+                      Size(double.infinity, 55)), // Adjust the height as needed
+                  backgroundColor:
+                      MaterialStateProperty.all(Colors.white), // Fondo blanco
+                  elevation: MaterialStateProperty.all(0), // Sin sombra
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.circular(10), // Borde redondeado
+                      side: BorderSide(
+                        color: Color.fromARGB(
+                            255, 92, 142, 203), // Color del borde
+                        width: 2.0, // Ancho del borde
+                      ),
+                    ),
+                  ),
                 ),
               ),
               Align(
                 alignment: Alignment.center,
                 child: Text(
                   locationName,
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                 ),
               ),
               _buildTextField(
@@ -590,7 +772,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  dateCreation = new DateTime.now();
+                  dateCreation = DateTime.now();
                   status = 1;
                   if (esCarnetizador &&
                       _formKey.currentState!.validate() &&
@@ -601,9 +783,12 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     if (widget.isUpdate) {
                       await updateUser();
                       await updateJefeCarnetizador();
+                      await updatePersonaImage();
+                      await downloadBase64ImageAndSave(idPerson);
+
                       Mostrar_Finalizado(context, "Actualización Completado");
                     } else if (password != "") {
-                      dateCreation = new DateTime.now();
+                      dateCreation = DateTime.now();
                       status = 1;
                       await registerUser();
                       idPerson = await getNextIdPerson();
@@ -619,9 +804,12 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         datebirthday != null) {
                       if (widget.isUpdate) {
                         await updateUser();
+                        await updatePersonaImage();
+                        await downloadBase64ImageAndSave(idPerson);
+
                         Mostrar_Finalizado(context, "Actualización Completado");
                       } else if (password != "") {
-                        dateCreation = new DateTime.now();
+                        dateCreation = DateTime.now();
                         status = 1;
                         await registerUser();
                         Mostrar_Finalizado(context, "Registro Completado");
@@ -635,9 +823,26 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     }
                   }
                 },
-                child: Text(widget.isUpdate ? 'Actualizar' : 'Registrar'),
-                style: ElevatedButton.styleFrom(
-                  primary: Color(0xFF1A2946),
+                child: Text(
+                  widget.isUpdate ? 'Actualizar' : 'Registrar',
+                  style: TextStyle(
+                      color: Color.fromARGB(
+                          255, 92, 142, 203)), // Cambia el color del texto
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.white),
+                  elevation: MaterialStateProperty.all(0),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(
+                        color: Color.fromARGB(255, 92, 142, 203),
+                        width: 2.0,
+                      ),
+                    ),
+                  ),
+                  minimumSize:
+                      MaterialStateProperty.all(Size(double.infinity, 50)),
                 ),
               ),
             ],
@@ -655,6 +860,14 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
       children: [
         Container(
           width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white, // Fondo blanco
+            borderRadius: BorderRadius.circular(10), // Borde redondeado
+            border: Border.all(
+              color: Color.fromARGB(255, 92, 142, 203), // Color del borde
+              width: 2.0, // Ancho del borde
+            ),
+          ),
           child: ElevatedButton(
             onPressed: () async {
               datebirthday = await showDatePicker(
@@ -673,10 +886,13 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
               datebirthday != null
                   ? "${datebirthday.day}/${datebirthday.month}/${datebirthday.year}"
                   : label,
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                color: Color.fromARGB(255, 92, 142, 203),
+              ),
             ),
             style: ElevatedButton.styleFrom(
-              primary: Color(0xFF1A2946),
+              primary: Colors.transparent, // Fondo transparente
+              elevation: 0, // Sin sombra
             ),
           ),
         ),
@@ -705,17 +921,18 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     0), // Ajusta el espacio según sea necesario
                 child: Icon(
                   icon,
-                  color:
-                      Colors.white, // Establece el color del icono como blanco
+                  color: Color.fromARGB(255, 92, 142,
+                      203), // Establece el color del icono como blanco
                 ),
               ),
             Expanded(
               child: TextFormField(
                 initialValue: initialData,
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                 decoration: InputDecoration(
                   labelText: label,
-                  labelStyle: TextStyle(color: Colors.white),
+                  labelStyle:
+                      TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                 ),
                 onChanged: onChanged,
                 validator: validator,

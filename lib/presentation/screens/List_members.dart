@@ -24,10 +24,6 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
   String selectedRole = esCarnetizador ? "Jefe de Brigada" : "Todos";
   String searchQuery = "";
 
-
-
-
-
   @override
   void initState() {
     super.initState();
@@ -64,7 +60,8 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF4D6596),
-        title: Text('Cuentas', style: TextStyle(color: Colors.white)),
+        title: Text('Cuentas',
+            style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
@@ -86,36 +83,48 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
         ),
       ),
       body: Container(
-        color: Color(0xFF4D6596),
+        color: Color.fromARGB(255, 255, 255, 255),
         child: Column(
           children: [
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Theme(
-                data: ThemeData(
-                  canvasColor: Color(0xFF4D6596),
-                ),
-                child: DropdownButtonFormField<String>(
-                  value: selectedRole,
-                  items: roles.map((role) {
-                    return DropdownMenuItem<String>(
-                      value: role,
-                      child: Text(role, style: TextStyle(color: Colors.white)),
-                    );
-                  }).toList(),
-                  onChanged: esCarnetizador
-                      ? null
-                      : (newValue) {
-                          setState(() {
-                            selectedRole = newValue!;
-                          });
-                        },
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Color(0xFF4D6596),
+                  data: ThemeData(
+                    canvasColor: Color.fromARGB(255, 255, 255, 255),
                   ),
-                ),
-              ),
+                  child: DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    items: roles.map((role) {
+                      return DropdownMenuItem<String>(
+                        value: role,
+                        child: Text(
+                          role,
+                          style: TextStyle(
+                              color: Color.fromARGB(255, 92, 142, 203)),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: esCarnetizador
+                        ? null
+                        : (newValue) {
+                            setState(() {
+                              selectedRole = newValue!;
+                            });
+                          },
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Color.fromARGB(255, 255, 255, 255),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                            10.0), // Personaliza el radio del borde
+                        borderSide: BorderSide(
+                          color: Color.fromARGB(
+                              255, 92, 142, 203), // Color del borde
+                          width: 2.0, // Ancho del borde
+                        ),
+                      ),
+                    ),
+                  )),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16),
@@ -125,12 +134,19 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                     searchQuery = query;
                   });
                 },
-                style: TextStyle(color: Colors.white),
+                style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                 decoration: InputDecoration(
                   labelText: 'Buscar por nombre o carnet',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white),
+                  labelStyle:
+                      TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(
+                        10.0), // Personaliza el radio del borde
+                    borderSide: BorderSide(
+                      color:
+                          Color.fromARGB(255, 92, 142, 203), // Color del borde
+                      width: 2.0, // Ancho del borde
+                    ),
                   ),
                 ),
               ),
@@ -155,11 +171,26 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                           margin: EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [Color(0xFF86ABF9), Color(0xFF4D6596)],
+                              colors: [
+                                Color.fromARGB(
+                                    255, 255, 255, 255), // 20% del otro color
+                                Color.fromARGB(
+                                    255, 255, 255, 255), // 20% del otro color
+                                Color.fromARGB(255, 92, 142, 203), // 80% blanco
+                              ],
+                              stops: [
+                                0.2,
+                                0.75,
+                                1
+                              ], // Establece los puntos de parada del color
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Color.fromARGB(255, 92, 142, 203),
+                              width: 2.0,
+                            ),
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
@@ -173,12 +204,17 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                                     Text(
                                       member.names,
                                       style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold),
+                                        color:
+                                            Color.fromARGB(255, 92, 142, 203),
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                     Text(
                                       "${member.fechaCreacion?.day}/${member.fechaCreacion?.month}/${member.fechaCreacion?.year}",
-                                      style: TextStyle(color: Colors.white),
+                                      style: TextStyle(
+                                        color:
+                                            Color.fromARGB(255, 92, 142, 203),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -186,15 +222,17 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                                 Text(
                                   "Carnet: ${member.carnet}",
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
+                                    color: Color.fromARGB(255, 92, 142, 203),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   "Rol: ${member.role}",
                                   style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold),
+                                    color: Color.fromARGB(255, 92, 142, 203),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 SizedBox(height: 16),
                                 Align(
@@ -221,26 +259,44 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                                               onPressed: () {
                                                 showDialog(
                                                   context: context,
-                                                  builder: (BuildContext context) {
+                                                  builder:
+                                                      (BuildContext context) {
                                                     return AlertDialog(
-                                                      title: Text('Eliminar chat?'),
-                                                      content: Icon(Icons.warning, color: Colors.red, size: 50),
+                                                      title: Text(
+                                                          'Eliminar Usuario?'),
+                                                      content: Icon(
+                                                        Icons.warning,
+                                                        color: Colors.red,
+                                                        size: 50,
+                                                      ),
                                                       actions: <Widget>[
                                                         TextButton(
-                                                          child: Text('Cancelar', style: TextStyle(color: Colors.black)),
+                                                          child: Text(
+                                                            'Cancelar',
+                                                            style: TextStyle(
+                                                                color: Colors
+                                                                    .black),
+                                                          ),
                                                           onPressed: () {
-                                                            Navigator.of(context).pop(0); 
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(0);
                                                           },
                                                         ),
                                                         TextButton(
-                                                          child: Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                                          child: Text(
+                                                            'Eliminar',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    Colors.red),
+                                                          ),
                                                           onPressed: () async {
-                                                            Navigator.of(context).pop(1); 
-                                                            await deleteAccount(member.id);
-                                                            setState(() {
-                                                              
-                                                            });
-                                                            
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(1);
+                                                            await deleteAccount(
+                                                                member.id);
+                                                            setState(() {});
                                                           },
                                                         ),
                                                       ],
