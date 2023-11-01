@@ -4,7 +4,9 @@ import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Cardholder.dart';
 import 'package:admin/presentation/screens/List_members.dart';
 import 'package:admin/services/services_firebase.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:admin/Models/Profile.dart';
@@ -17,6 +19,7 @@ import 'package:camera/camera.dart';
 import 'package:image/image.dart' as img;
 import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 
 Image? image;
 void main() => runApp(MyApp());
@@ -69,17 +72,115 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   late Image flutterImage;
   File? selectedImageFile;
   late bool otherUser = false;
+  File? selectedImage;
+  bool isLoadingImage=true;
 
   void initState() {
     super.initState();
+
+    if(widget.isUpdate==false){
+      setState(() {
+        isLoadingImage=false;
+      });
+    }
+
+    if(miembroActual!.id!=widget.userData?.id){
+      imageProfile=null;
+    }
     if (widget.userData?.id != null) {
       Cargar_Datos_Persona();
-      flutterImage = Image.file(File(imagePath!));
+      if(imageProfile==null){
+        addImageToSelectedImages(widget.userData!.id);
+      }
+      flutterImage = imagePath != null ? Image.file(File(imagePath!)) : Image.asset('assets/usuario.png');
       if (miembroActual?.id != widget.userData?.id) {
         otherUser = true;
       }
     }
   }
+
+    Future<void> addImageToSelectedImages(int idPerson) async {
+  try {
+    String imageUrl = await getImageUrl(idPerson);
+    File tempImage = await _downloadImage(imageUrl);
+    
+    setState(() {
+      imageProfile = tempImage;
+      isLoadingImage=false;
+    });
+  } catch (e) {
+    print('Error al obtener y descargar la imagen: $e');
+    setState(() {
+      isLoadingImage=false;
+    });
+  }
+}
+
+Future<String> getImageUrl(int idPerson) async {
+  try {
+    Reference storageRef = FirebaseStorage.instance.ref('cliente/$idPerson/imagenUsuario.jpg');
+    return await storageRef.getDownloadURL();
+  } catch (e) {
+    print('Error al obtener URL de la imagen: $e');
+    throw e;
+  }
+}
+
+Future<File> _downloadImage(String imageUrl) async {
+  final response = await http.get(Uri.parse(imageUrl));
+
+  if (response.statusCode == 200) {
+    final bytes = response.bodyBytes;
+    final tempDir = await getTemporaryDirectory();
+    final tempImageFile = File('${tempDir.path}/${DateTime.now().toIso8601String()}.jpg');
+    await tempImageFile.writeAsBytes(bytes);
+    return tempImageFile;
+  } else {
+    throw Exception('Error al descargar imagen');
+  }
+}
+
+    Future<bool> uploadImage(File? image, int userId) async {
+    try {
+      if(widget.isUpdate==false){
+        userId = await getNextIdPerson();
+      }
+      
+      final firebase_storage.Reference storageRef =
+          firebase_storage.FirebaseStorage.instance.ref();
+      print("Ultimo ID =======" + "---" + idPerson.toString());
+      String carpeta = 'cliente/$userId';
+
+      if (image != null) {
+        firebase_storage.Reference imageRef =
+            storageRef.child('$carpeta/imagenUsuario.jpg');
+
+        // Comprimir la imagen antes de subirla
+        List<int> compressedBytes = await compressImage(image);
+
+        await imageRef.putData(Uint8List.fromList(compressedBytes));
+      }
+
+      return true;
+    } catch (e) {
+      print('Error al subir la imagen: $e');
+      return false;
+    }
+  }
+
+    Future<List<int>> compressImage(File imageFile) async {
+    // Leer la imagen
+    List<int> imageBytes = await imageFile.readAsBytes();
+
+    // Decodificar la imagen
+    img.Image image = img.decodeImage(Uint8List.fromList(imageBytes))!;
+
+    // Comprimir la imagen con una calidad específica (85 en este caso)
+    List<int> compressedBytes = img.encodeJpg(image, quality: 85);
+
+    return compressedBytes;
+  }
+
 
   Future<void> deleteLocalImage() async {
     final file = File(imagePath!);
@@ -462,6 +563,17 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     }
   }
 
+    Future<void> _getImageFromGallery() async {
+    final pickedImage =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      if (pickedImage != null) {
+        imageProfile = File(pickedImage.path);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = widget.isUpdate
@@ -504,7 +616,60 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
             children: [
               Column(
                 children: <Widget>[
-                  if (!otherUser && widget.isUpdate)
+                  Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      imageProfile != null ?InkWell(
+                        onTap: () {
+                          _getImageFromGallery();
+                        },
+                        child: CircleAvatar(
+                          backgroundImage: FileImage(imageProfile!),
+                          radius: 100,
+                          child: null,
+                        ),
+                      ): InkWell(
+                        onTap: () {
+                          _getImageFromGallery();
+                        },
+                        child: Stack(
+                          children: [
+                            CircleAvatar(
+                              backgroundImage: null,
+                              radius: 100,
+                              child: isLoadingImage ? null : Icon(Icons.camera_alt, size: 50.0),
+                            ),
+                            if (isLoadingImage)
+                              Positioned.fill(
+                                child: Container(
+                                  width: 200,
+                                  height: 200,
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: 60, 
+                                    height: 60, 
+                                    child: SpinKitCircle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        )
+                      ),
+                      SizedBox(height: 20),
+                      selectedImageFile != null
+                          ? Image.file(
+                              selectedImageFile!,
+                              height: 200,
+                              width: 200,
+                            )
+                          : Container(),
+                    ],
+                  ),
+                ),
+                  /*if (!otherUser && widget.isUpdate)
                     Center(
                       child: Column(
                         children: [
@@ -546,7 +711,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                           ),
                         ],
                       ),
-                    ),
+                    ),*/
                 ],
               ),
               _buildTextField(
@@ -599,6 +764,8 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 icon: Icons.call,
                 keyboardType: TextInputType.number,
               ),
+              if(widget.userData==null||widget.userData!.id!=6)
+              widget.userData==null?
               Row(children: [
                 Icon(
                   Icons.list_alt, // Cambia esto al icono que prefieras
@@ -606,7 +773,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                 ),
                 SizedBox(width: 10),
                 Expanded(
-                  child: DropdownButton<String>(
+                  child: widget.userData==null? DropdownButton<String>(
                     hint: Text('Rol',
                         style: TextStyle(
                             color: Color.fromARGB(255, 92, 142, 203))),
@@ -633,9 +800,9 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         }
                       });
                     },
-                  ),
+                  ):Container(),
                 )
-              ]),
+              ]):Container(),
               esCarnetizador
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,7 +860,7 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    "Seleccionar Ubicacion",
+                    "Dirección",
                     style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                   ),
                 ],
@@ -783,7 +950,8 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                     if (widget.isUpdate) {
                       await updateUser();
                       await updateJefeCarnetizador();
-                      await updatePersonaImage();
+                      //await updatePersonaImage();
+                      await uploadImage(imageProfile, idPerson);
                       await downloadBase64ImageAndSave(idPerson);
 
                       Mostrar_Finalizado(context, "Actualización Completado");
@@ -804,7 +972,8 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
                         datebirthday != null) {
                       if (widget.isUpdate) {
                         await updateUser();
-                        await updatePersonaImage();
+                        //await updatePersonaImage();
+                        await uploadImage(imageProfile, idPerson);
                         await downloadBase64ImageAndSave(idPerson);
 
                         Mostrar_Finalizado(context, "Actualización Completado");

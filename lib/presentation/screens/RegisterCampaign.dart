@@ -568,7 +568,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                 context: context,
                 initialDate: initialDate ?? DateTime.now(),
                 firstDate: DateTime(1900),
-                lastDate: DateTime.now(),
+                lastDate: DateTime(2100), // Fecha futura permitida hasta el año 2100
               );
 
               if (fecha != null) {
@@ -592,4 +592,5 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
       ],
     );
   }
+
 }

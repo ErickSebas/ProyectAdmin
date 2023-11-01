@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:admin/Implementation/ChatImp.dart';
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/presentation/screens/Campaign.dart';
@@ -6,11 +8,12 @@ import 'package:admin/services/services_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:admin/Models/ChatModel.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
 
 void main() => runApp(ChatApp());
 
@@ -20,7 +23,7 @@ class ChatApp extends StatelessWidget {
     return MaterialApp(
       title: 'Chat Móvil',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: myColorMaterial,
       ),
       home: ChatPage(
         idChat: 0,
@@ -35,7 +38,8 @@ class ChatPage extends StatefulWidget {
   final int idChat;
   final String nombreChat;
   final int idPersonDestino;
-  ChatPage({required this.idChat, required this.nombreChat, required this.idPersonDestino});
+  final File? imageChat;
+  ChatPage({required this.idChat, required this.nombreChat, required this.idPersonDestino, this.imageChat});
   @override
   _ChatPageState createState() => _ChatPageState();
 }
@@ -110,10 +114,16 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF4D6596),
+      backgroundColor: Color(0xFF5C8ECB),
       appBar: AppBar(
-        backgroundColor: Color(0xFF4D6596),
-        title: Text(widget.nombreChat, style: TextStyle(color: Colors.white)),
+        backgroundColor: Color(0xFF5C8ECB),
+        title: Row(children: [
+          CircleAvatar(
+            backgroundImage: FileImage(widget.imageChat!),
+          ),
+          SizedBox(width: 20,),
+          Text(widget.nombreChat, style: TextStyle(color: Colors.white)),
+        ],) ,
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
@@ -159,9 +169,9 @@ class _ChatPageState extends State<ChatPage> {
                         color: 
                         widget.idPersonDestino!=0?
                         (messages[index].idPerson != widget.idPersonDestino
-                            ? Colors.blue
+                            ? Colors.green
                             : Colors.white):(messages[index].idPerson == miembroActual!.id
-                            ? Colors.blue
+                            ? Colors.green
                             : Colors.white),
                         elevation: 5.0,
                         shape: RoundedRectangleBorder(
@@ -208,7 +218,7 @@ class _ChatPageState extends State<ChatPage> {
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blue, width: 1.0),
+                        borderSide: BorderSide(color: Color(0xFF5C8ECB), width: 1.0),
                         borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
@@ -228,7 +238,11 @@ class _ChatPageState extends State<ChatPage> {
             ),
           )
         ],
-      ):Center(child: CircularProgressIndicator(),),
+      ):Center(child: SpinKitCircle(
+                      color: Colors.white,
+                      size: 50.0,
+                    ),),
     );
   }
 }
+

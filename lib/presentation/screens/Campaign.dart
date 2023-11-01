@@ -17,12 +17,14 @@ import 'package:admin/presentation/screens/Conversations.dart';
 import 'package:admin/presentation/screens/RegisterCampaign.dart';
 import 'package:admin/presentation/screens/RegisterCardholders.dart';
 import 'package:admin/services/services_firebase.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:admin/Models/CampaignModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 int estadoPerfil = 0;
 
@@ -76,10 +78,61 @@ class CampaignPage extends StatefulWidget {
 
 class _CampaignStateState extends State<CampaignPage>
     with SingleTickerProviderStateMixin {
+  bool isloadingProfile = true;
   @override
   void initState() {
     super.initState();
+    if(imageProfile==null){
+      addImageToSelectedImages(miembroActual!.id);
+    }else{
+      isloadingProfile=false;
+    }
+    
   }
+
+  Future<File?> addImageToSelectedImages(int idPerson) async {
+    try {
+      String imageUrl = await getImageUrl(idPerson);
+      File tempImage = await _downloadImage(imageUrl);
+      
+      setState(() {
+        imageProfile = tempImage;
+        isloadingProfile=false;
+      });
+      return imageProfile;
+    } catch (e) {
+      print('Error al obtener y descargar la imagen: $e');
+      setState(() {
+        isloadingProfile=false;
+      });
+    }
+    
+    return null;
+  }
+
+  Future<String> getImageUrl(int idPerson) async {
+  try {
+    Reference storageRef = FirebaseStorage.instance.ref('cliente/$idPerson/imagenUsuario.jpg');
+    return await storageRef.getDownloadURL();
+  } catch (e) {
+    print('Error al obtener URL de la imagen: $e');
+    throw e;
+  }
+}
+
+Future<File> _downloadImage(String imageUrl) async {
+  final response = await http.get(Uri.parse(imageUrl));
+
+  if (response.statusCode == 200) {
+    final bytes = response.bodyBytes;
+    final tempDir = await getTemporaryDirectory();
+    final tempImageFile = File('${tempDir.path}/${DateTime.now().toIso8601String()}.jpg');
+    await tempImageFile.writeAsBytes(bytes);
+    return tempImageFile;
+  } else {
+    throw Exception('Error al descargar imagen');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +188,71 @@ class _CampaignStateState extends State<CampaignPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    LayoutBuilder(
+                        builder: (context, constraints) {
+                          double avatarRadius = constraints.maxWidth * 0.15;
+                          
+                          return imageProfile != null
+                            ? InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RegisterBossPage(
+                                      isUpdate: true,
+                                      userData: miembroActual,
+                                    )),
+                                );
+                              },
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundImage: isloadingProfile?null: FileImage(imageProfile!),
+                                    radius: avatarRadius,
+                                  ),
+                                  if (isloadingProfile)
+                                    SizedBox(
+                                      width: 60, 
+                                      height: 60, 
+                                      child: SpinKitCircle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            )
+                            : InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RegisterBossPage(
+                                      isUpdate: true,
+                                      userData: miembroActual,
+                                    )),
+                                );
+                              },
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                   CircleAvatar(
+                                    backgroundImage: isloadingProfile?null: AssetImage('assets/usuario.png'),
+                                    radius: avatarRadius,
+                                  ),
+                                  if (isloadingProfile)
+                                    SizedBox(
+                                      width: 60, 
+                                      height: 60, 
+                                      child: SpinKitCircle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                        },
+                      ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -168,7 +286,7 @@ class _CampaignStateState extends State<CampaignPage>
               leading: Icon(Icons.campaign),
               title: Text('Registrar Campaña'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => RegisterCampaignPage(
@@ -188,7 +306,7 @@ class _CampaignStateState extends State<CampaignPage>
               leading: Icon(Icons.person_add_alt),
               title: Text('Registrar Usuario'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => RegisterBossPage(
@@ -245,7 +363,7 @@ class _CampaignStateState extends State<CampaignPage>
                           }
                       });
                 } else {
-                  Navigator.pushReplacement(
+                  Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => ChatScreenState()),
                   );
@@ -257,7 +375,7 @@ class _CampaignStateState extends State<CampaignPage>
               title: Text('Perfil'),
               onTap: () {
                 estadoPerfil = 0;
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => ProfilePage(member: miembroActual)),
@@ -269,7 +387,7 @@ class _CampaignStateState extends State<CampaignPage>
               title: Text('Cuentas'),
               onTap: () {
                 estadoPerfil = 1;
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ListMembersScreen()),
                 );
@@ -330,7 +448,7 @@ class _CampaignStateState extends State<CampaignPage>
                           style: TextStyle(color: Color(0xFF4D6596)),
                         ),
                         onTap: () {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => RegisterCampaignPage(
@@ -350,7 +468,7 @@ class _CampaignStateState extends State<CampaignPage>
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushReplacement(
+          Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => RegisterCampaignPage(

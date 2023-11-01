@@ -211,6 +211,7 @@ class ProfilePage extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: 20),
+                          if(miembroActual!.role=="Administrador"||miembroActual!.role=="Super Admin")
                           _buildSendEmailButton(context)
                         ],
                       )
