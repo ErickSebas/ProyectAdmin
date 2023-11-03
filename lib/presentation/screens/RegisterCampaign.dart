@@ -119,13 +119,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
             icon: Icon(Icons.arrow_back,
                 color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => ChangeNotifierProvider(
-                        create: (context) => CampaignProvider(),
-                        child: CampaignPage())),
-              );
+              Navigator.pop(context);
             },
           ),
         ),
@@ -152,14 +146,14 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                   SizedBox(width: 10),
                   Expanded(
                     child: TextFormField(
-                      controller: _textController,
+                      initialValue: nombre,
                       style:
-                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+                          TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: 'Nombre de la campaña',
                         labelStyle:
                             TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
-                        counterText: "${_textController.text.length}/50",
+                        counterText: "${nombre.length}/50",
                         counterStyle: TextStyle(
                             color: Color.fromARGB(
                                 255, 92, 142, 203)), // Estilo del contador
@@ -169,7 +163,9 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                       onChanged: (value) {
                         setState(() {
                           if (value.length > 50) {
-                            _textController.text = value.substring(0, 50);
+                            nombre = value.substring(0, 50);
+                          }else{
+                            nombre = value;
                           }
                         });
                       },
@@ -198,7 +194,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     child: TextFormField(
                       initialValue: descripcion,
                       style:
-                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+                          TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: 'Descripción',
                         labelStyle:
@@ -241,12 +237,11 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                   Expanded(
                     child: DropdownButton<String>(
                       hint: Text('Selecciona una categoría',
-                          style: TextStyle(
-                              color: Color.fromARGB(255, 92, 142, 203))),
+                          style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),),
                       value: categoria,
                       dropdownColor: Colors.grey[850],
                       style:
-                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+                          TextStyle(color: Colors.black),
                       items: <String>['Vacuna', 'Carnetizacion']
                           .map((String value) {
                         return DropdownMenuItem<String>(
@@ -330,7 +325,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     Text(
                       'Importar KML',
                       style:
-                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+                          TextStyle(color: Colors.black),
                     ),
                   ],
                 ),
@@ -580,7 +575,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
               initialDate != null
                   ? "${initialDate.day}/${initialDate.month}/${initialDate.year}"
                   : label,
-              style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+              style: TextStyle(color: Colors.black),
             ),
             style: ElevatedButton.styleFrom(
               primary: Colors.transparent, // Fondo transparente

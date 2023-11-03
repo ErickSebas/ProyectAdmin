@@ -106,20 +106,8 @@ class ProfilePage extends StatelessWidget {
             icon: Icon(Icons.arrow_back,
                 color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
-              if (estadoPerfil == 0) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ChangeNotifierProvider(
-                          create: (context) => CampaignProvider(),
-                          child: CampaignPage())),
-                );
-              } else {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => ListMembersScreen()),
-                );
-              }
+                Navigator.pop(context);
+              
             },
           ),
         ),
@@ -325,7 +313,7 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             TextSpan(
-              text: parts[1], // Parte del contenido
+              text: parts[1], style: TextStyle(color: Colors.black)
             ),
           ],
         ),

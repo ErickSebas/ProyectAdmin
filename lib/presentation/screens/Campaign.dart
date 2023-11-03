@@ -25,6 +25,7 @@ import 'package:admin/Models/CampaignModel.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:intl/intl.dart'; 
 
 int estadoPerfil = 0;
 
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
 
 class CampaignProvider extends ChangeNotifier {
   List<Campaign> campaigns1 = campaigns;
+  bool showAllCampaigns = false;
 
   CampaignProvider() {
     //loadCampaigns();
@@ -56,6 +58,11 @@ class CampaignProvider extends ChangeNotifier {
   Future<void> loadCampaigns() async {
     //campaigns1 = await fetchCampaigns();
 
+    notifyListeners();
+  }
+
+  void toggleShowAll() {
+    showAllCampaigns = !showAllCampaigns;
     notifyListeners();
   }
 
@@ -79,6 +86,8 @@ class CampaignPage extends StatefulWidget {
 class _CampaignStateState extends State<CampaignPage>
     with SingleTickerProviderStateMixin {
   bool isloadingProfile = true;
+  
+  final now = DateTime.now();
   @override
   void initState() {
     super.initState();
@@ -89,6 +98,20 @@ class _CampaignStateState extends State<CampaignPage>
     }
     
   }
+
+
+
+  Color getStatusColor(DateTime start, DateTime end) {
+
+    if (now.isAfter(end)) {
+      return Colors.red; 
+    } else if (now.isBefore(start)) {
+      return Colors.blue; 
+    } else {
+      return Colors.green; 
+    }
+  }
+
 
   Future<File?> addImageToSelectedImages(int idPerson) async {
     try {
@@ -401,9 +424,11 @@ Future<File> _downloadImage(String imageUrl) async {
                 onTap: () async {
                   final prefs = await SharedPreferences.getInstance();
                   prefs.setInt('miembroLocal', 0);
+                  esCarnetizador=false;
                   tokenClean();
                   chats.clear();
                   namesChats.clear();
+                  imageProfile = null;
                   miembroActual = null;
                   Navigator.pushReplacement(
                     context,
@@ -415,53 +440,98 @@ Future<File> _downloadImage(String imageUrl) async {
           ],
         ),
       ),
-      body: Consumer<CampaignProvider>(
+      body:
+        Consumer<CampaignProvider>(
         builder: (context, provider, child) {
-          return Column(
+          return Stack(
             children: [
-              searchField,
-              Expanded(
-                child: ListView.builder(
-                  itemCount: provider.campaigns1.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      elevation: 4.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: BorderSide(
-                          color: Color.fromARGB(
-                              255, 92, 142, 203), // Color del borde
-                          width: 2.0, // Ancho del borde
-                        ),
-                      ),
-                      margin: const EdgeInsets.all(10.0),
-                      child: ListTile(
-                        title: Text(
-                          provider.campaigns1[index].nombre,
-                          style: TextStyle(
-                            color: Color(0xFF4D6596),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Text(
-                          provider.campaigns1[index].descripcion,
-                          style: TextStyle(color: Color(0xFF4D6596)),
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RegisterCampaignPage(
-                                initialData: provider.campaigns1[index],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    );
-                  },
-                ),
+              Column(
+                children: [
+                  searchField,
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: provider.campaigns1.length,
+                      itemBuilder: (context, index) {
+                          return Card(
+                                  elevation: 4.0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    side: BorderSide(
+                                      color: Color.fromARGB(255, 92, 142, 203),
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                  margin: const EdgeInsets.all(10.0),
+                                  child: ListTile(
+                                    title: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            provider.campaigns1[index].nombre,
+                                            style: TextStyle(
+                                              color: Color(0xFF4D6596),
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                                          decoration: BoxDecoration(
+                                            color: getStatusColor(
+                                              provider.campaigns1[index].dateStart,
+                                              provider.campaigns1[index].dateEnd,
+                                            ),
+                                            borderRadius: BorderRadius.circular(5.0),
+                                          ),
+                                          child: Text(
+                                            now.isAfter(provider.campaigns1[index].dateEnd)
+                                                ? 'Finalizado'
+                                                : now.isBefore(provider.campaigns1[index].dateStart)
+                                                    ? 'En espera'
+                                                    : 'En curso',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(
+                                          provider.campaigns1[index].descripcion,
+                                          style: TextStyle(color: Color(0xFF4D6596)),
+                                        ),
+                                        Text(
+                                          "${DateFormat('dd/MM/yy').format(provider.campaigns1[index].dateStart)} - ${DateFormat('dd/MM/yy').format(provider.campaigns1[index].dateEnd)}",
+                                          style: TextStyle(
+                                            color: Color(0xFF4D6596),
+                                            fontSize: 12.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => RegisterCampaignPage(
+                                            initialData: provider.campaigns1[index],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                      },
+                    ),
+                  ),
+                ],
               ),
+              
             ],
           );
         },

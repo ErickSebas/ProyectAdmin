@@ -67,17 +67,8 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
           builder: (context) => IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
-              esCarnetizador
-                  ? Navigator.pop(context)
-                  : Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChangeNotifierProvider(
-                          create: (context) => CampaignProvider(),
-                          child: CampaignPage(),
-                        ),
-                      ),
-                    );
+              Navigator.pop(context);
+
             },
           ),
         ),

@@ -59,7 +59,8 @@ dependencies:
   flutter_image_compress: ^2.0.4
   camera: ^0.8.0
   image_picker: ^1.0.4
-  connectivity_plus: ^5.0.1 # The following adds the Cupertino Icons font to your application.
+  connectivity_plus: ^5.0.1
+  intl: ^0.18.1 # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
 
 dev_dependencies:

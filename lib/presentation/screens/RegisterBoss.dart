@@ -74,6 +74,8 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
   late bool otherUser = false;
   File? selectedImage;
   bool isLoadingImage=true;
+  String address="";
+  File? imageLocal;
 
   void initState() {
     super.initState();
@@ -83,14 +85,17 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
         isLoadingImage=false;
       });
     }
-
+/*
     if(miembroActual!.id!=widget.userData?.id){
       imageProfile=null;
-    }
+    }*/
     if (widget.userData?.id != null) {
       Cargar_Datos_Persona();
-      if(imageProfile==null){
+      if(imageProfile==null||miembroActual!.id!=widget.userData?.id){
         addImageToSelectedImages(widget.userData!.id);
+      }else{
+        imageLocal = imageProfile;
+        isLoadingImage=false;
       }
       flutterImage = imagePath != null ? Image.file(File(imagePath!)) : Image.asset('assets/usuario.png');
       if (miembroActual?.id != widget.userData?.id) {
@@ -99,13 +104,21 @@ class _RegisterBossPageState extends State<RegisterBossPage> {
     }
   }
 
+  @override
+  void dispose(){
+    esCarnetizador=false;
+    imageLocal=null;
+    super.dispose();
+    
+  }
+
     Future<void> addImageToSelectedImages(int idPerson) async {
   try {
     String imageUrl = await getImageUrl(idPerson);
     File tempImage = await _downloadImage(imageUrl);
     
     setState(() {
-      imageProfile = tempImage;
+      imageLocal = tempImage;
       isLoadingImage=false;
     });
   } catch (e) {
@@ -237,6 +250,13 @@ Future<File> _downloadImage(String imageUrl) async {
     latitude = widget.userData!.latitud.toString();
     longitude = widget.userData!.longitud.toString();
     email = widget.userData!.correo;
+    address = await getAddressFromLatLng(
+      widget.userData!.latitud,
+      widget.userData!.longitud,
+      'AIzaSyBaqF8pGcAaGUm7oE3KbHWsjUfBdCEBujM',
+    );
+    locationName = address;
+    
     if (esCarnetizador) {
       jefeDeCarnetizador = await getCardByUser(widget.userData!.id);
       nameJefe = jefeDeCarnetizador!.names;
@@ -294,8 +314,10 @@ Future<File> _downloadImage(String imageUrl) async {
       idRolSeleccionada = 2;
     } else if (selectedRole == 'Carnetizador') {
       idRolSeleccionada = 3;
-    } else {
-      // Puedes manejar cualquier otro caso aquí, si es necesario.
+    } else if (selectedRole == 'Cliente'){
+      idRolSeleccionada=4;
+    }else{
+      idRolSeleccionada=5;
     }
     final response = await http.put(
       url,
@@ -318,7 +340,7 @@ Future<File> _downloadImage(String imageUrl) async {
       // Registro exitoso
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al registrar el usuario')),
+        SnackBar(content: Text('Error al Actualizar el usuario')),
       );
     }
 
@@ -395,7 +417,7 @@ Future<File> _downloadImage(String imageUrl) async {
       // Registro exitoso
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al registrar el usuario')),
+        SnackBar(content: Text('Error al registrar el usuario Carnetizador')),
       );
     }
   }
@@ -569,7 +591,7 @@ Future<File> _downloadImage(String imageUrl) async {
 
     setState(() {
       if (pickedImage != null) {
-        imageProfile = File(pickedImage.path);
+        imageLocal = File(pickedImage.path);
       }
     });
   }
@@ -593,17 +615,7 @@ Future<File> _downloadImage(String imageUrl) async {
                 color: Color.fromARGB(255, 255, 255, 255)),
             onPressed: () {
               esCarnetizador = false;
-              widget.isUpdate == false
-                  ? Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChangeNotifierProvider(
-                          create: (context) => CampaignProvider(),
-                          child: CampaignPage(),
-                        ),
-                      ),
-                    )
-                  : Navigator.pop(context);
+              Navigator.pop(context);
             },
           ),
         ),
@@ -620,12 +632,12 @@ Future<File> _downloadImage(String imageUrl) async {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      imageProfile != null ?InkWell(
+                      imageLocal!=null ?InkWell(
                         onTap: () {
                           _getImageFromGallery();
                         },
                         child: CircleAvatar(
-                          backgroundImage: FileImage(imageProfile!),
+                          backgroundImage: FileImage(imageLocal!),
                           radius: 100,
                           child: null,
                         ),
@@ -826,7 +838,7 @@ Future<File> _downloadImage(String imageUrl) async {
                           width: double.infinity,
                           child: ElevatedButton(
                             child:
-                                Text(nameJefe == '' ? "Seleccionar" : nameJefe),
+                                Text(nameJefe == '' ? "Seleccionar" : nameJefe, style: TextStyle(color: Colors.black),),
                             onPressed: () async {
                               esCarnetizador = true;
 
@@ -843,8 +855,23 @@ Future<File> _downloadImage(String imageUrl) async {
                               }
                               setState(() {});
                             },
-                            style: ElevatedButton.styleFrom(
-                              primary: Color(0xFF1A2946),
+                            style: ButtonStyle(
+                              minimumSize: MaterialStateProperty.all(
+                                  Size(double.infinity, 55)), // Adjust the height as needed
+                              backgroundColor:
+                                  MaterialStateProperty.all(Colors.white), // Fondo blanco
+                              elevation: MaterialStateProperty.all(0), // Sin sombra
+                              shape: MaterialStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(10), // Borde redondeado
+                                  side: BorderSide(
+                                    color: Color.fromARGB(
+                                        255, 92, 142, 203), // Color del borde
+                                    width: 2.0, // Ancho del borde
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -869,7 +896,7 @@ Future<File> _downloadImage(String imageUrl) async {
                 child: Text(
                   "Selecciona una ubicación",
                   style: TextStyle(
-                    color: Color.fromARGB(255, 92, 142, 203), // Color del texto
+                    color: Colors.black, // Color del texto
                   ),
                 ),
                 onPressed: () async {
@@ -881,7 +908,7 @@ Future<File> _downloadImage(String imageUrl) async {
                     ),
                   );
                   if (result != null) {
-                    final address = await getAddressFromLatLng(
+                    address = await getAddressFromLatLng(
                       result.latitude,
                       result.longitude,
                       'AIzaSyBaqF8pGcAaGUm7oE3KbHWsjUfBdCEBujM',
@@ -951,6 +978,7 @@ Future<File> _downloadImage(String imageUrl) async {
                       await updateUser();
                       await updateJefeCarnetizador();
                       //await updatePersonaImage();
+                      imageProfile = imageLocal;
                       await uploadImage(imageProfile, idPerson);
                       await downloadBase64ImageAndSave(idPerson);
 
@@ -973,6 +1001,7 @@ Future<File> _downloadImage(String imageUrl) async {
                       if (widget.isUpdate) {
                         await updateUser();
                         //await updatePersonaImage();
+                        imageProfile = imageLocal;
                         await uploadImage(imageProfile, idPerson);
                         await downloadBase64ImageAndSave(idPerson);
 
@@ -1056,7 +1085,7 @@ Future<File> _downloadImage(String imageUrl) async {
                   ? "${datebirthday.day}/${datebirthday.month}/${datebirthday.year}"
                   : label,
               style: TextStyle(
-                color: Color.fromARGB(255, 92, 142, 203),
+                color: Colors.black,
               ),
             ),
             style: ElevatedButton.styleFrom(
@@ -1097,7 +1126,7 @@ Future<File> _downloadImage(String imageUrl) async {
             Expanded(
               child: TextFormField(
                 initialValue: initialData,
-                style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
+                style: TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   labelText: label,
                   labelStyle:
