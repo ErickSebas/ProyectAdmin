@@ -56,6 +56,7 @@ class CampaignProvider extends ChangeNotifier {
   }
 
   Future<void> loadCampaigns() async {
+    campaigns1 = campaigns;
     //campaigns1 = await fetchCampaigns();
 
     notifyListeners();
@@ -218,6 +219,7 @@ Future<File> _downloadImage(String imageUrl) async {
                           return imageProfile != null
                             ? InkWell(
                               onTap: () {
+                                Navigator.of(context).pop();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -247,6 +249,7 @@ Future<File> _downloadImage(String imageUrl) async {
                             )
                             : InkWell(
                               onTap: () {
+                                Navigator.of(context).pop();
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -309,6 +312,7 @@ Future<File> _downloadImage(String imageUrl) async {
               leading: Icon(Icons.campaign),
               title: Text('Registrar Campaña'),
               onTap: () {
+                Navigator.of(context).pop();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -329,6 +333,7 @@ Future<File> _downloadImage(String imageUrl) async {
               leading: Icon(Icons.person_add_alt),
               title: Text('Registrar Usuario'),
               onTap: () {
+                Navigator.of(context).pop();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -342,6 +347,7 @@ Future<File> _downloadImage(String imageUrl) async {
               leading: Icon(Icons.message),
               title: Text('Mensaje'),
               onTap: () async {
+                Navigator.of(context).pop();
                 if (miembroActual!.role == 'Cliente') {
                   Chat chatCliente = Chat(
                       idChats: 0,
@@ -397,6 +403,7 @@ Future<File> _downloadImage(String imageUrl) async {
               leading: Icon(Icons.account_circle),
               title: Text('Perfil'),
               onTap: () {
+                Navigator.of(context).pop();
                 estadoPerfil = 0;
                 Navigator.push(
                   context,
@@ -409,6 +416,7 @@ Future<File> _downloadImage(String imageUrl) async {
               leading: Icon(Icons.account_tree),
               title: Text('Cuentas'),
               onTap: () {
+                Navigator.of(context).pop();
                 estadoPerfil = 1;
                 Navigator.push(
                   context,

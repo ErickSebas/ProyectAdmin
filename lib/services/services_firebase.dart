@@ -83,7 +83,7 @@ Future<void> eliminarArchivoDeStorage(int id) async {
 }
 
 Future<void> Subir_Json_Firebase(
-    int id, List<EUbication> Ubicaciones, Function(double) enProceso) async {
+    int id, List<EUbication> Ubicaciones) async {
   idCamp = id;
   String jsonUbication =
       jsonEncode(Ubicaciones.map((p) => p.toJson()).toList());
@@ -93,8 +93,7 @@ Future<void> Subir_Json_Firebase(
 
   // Escucha los cambios en el progreso de la tarea
   uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-    double currentProgress = snapshot.bytesTransferred / snapshot.totalBytes;
-    enProceso(currentProgress);
+
   });
   TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() => {});
   await uploadTask.whenComplete(() => {});
@@ -186,4 +185,34 @@ Future<void> Mostrar_Mensaje(BuildContext context, String texto) async {
       );
     },
   );
+}
+
+void showSnackbar(BuildContext context, String message, {int durationSeconds = 3}) {
+  final snackBar = SnackBar(
+    content: Text(message),
+    duration: Duration(seconds: durationSeconds),
+  );
+
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+}
+
+void showLoadingDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false, 
+    builder: (BuildContext context) {
+      return AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            Container(margin: EdgeInsets.only(left: 7), child: Text("Cargando...")),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void closeLoadingDialog(BuildContext context) {
+  Navigator.of(context).pop(); 
 }

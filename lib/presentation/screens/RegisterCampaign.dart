@@ -241,7 +241,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                       value: categoria,
                       dropdownColor: Colors.grey[850],
                       style:
-                          TextStyle(color: Colors.black),
+                          TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                       items: <String>['Vacuna', 'Carnetizacion']
                           .map((String value) {
                         return DropdownMenuItem<String>(
@@ -348,6 +348,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           _formKey.currentState!.validate() &&
                           (dateStart!.isBefore(dateEnd!) ||
                               dateStart!.isAtSameMomentAs(dateEnd!))) {
+                        showLoadingDialog(context);
                         Campaign updatedCampaign = Campaign(
                             id: id,
                             nombre: nombre,
@@ -356,55 +357,25 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                             dateStart: dateStart!,
                             dateEnd: dateEnd!,
                             userId: miembroActual!.id);
-                        updateCampaignById(updatedCampaign);
+                        await updateCampaignById(updatedCampaign);
 
                         if (kml != '') {
-                          //Actualizar Ubicaciones
-                          setState(() {
-                            estaCargando = true;
-                          });
-
-                          await Subir_Json_Firebase(id, Ubicaciones,
-                              (double valorProceso) {
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder: (context) {
-                                return AlertDialog(
-                                  title: Text('Espere unos momentos....'),
-                                  content: SingleChildScrollView(
-                                    child: ListBody(
-                                      children: [
-                                        Center(
-                                          child: SpinKitFadingCube(
-                                            color: Colors.blue,
-                                            size: 50.0,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                            setState(() {
-                              proceso = valorProceso;
-                            });
-                          });
+                          await Subir_Json_Firebase(id, Ubicaciones);
+                        
                           Ubicaciones.clear();
-                          setState(() {
-                            estaCargando = false;
-                          });
                         }
-
-                        Mostrar_Finalizado(
-                            context, "Se ha actualizado con éxito");
+                        closeLoadingDialog(context);
+                        showSnackbar(context, "Se ha actualizado con éxito");
+                        Navigator.pop(context);
+                        //Mostrar_Finalizado(
+                           // context, "Se ha actualizado con éxito");
                       } else if (_formKey.currentState!.validate() &&
                           categoria != null &&
                           kml != '' &&
                           (dateStart!.isBefore(dateEnd!) ||
                               dateStart!.isAtSameMomentAs(dateEnd!))) {
                         //Registrar
+                        showLoadingDialog(context);
                         Campaign newCampaign = Campaign(
                             id: 0,
                             nombre: nombre,
@@ -415,51 +386,24 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                             userId: miembroActual!.id);
                         await registerNewCampaign(newCampaign);
                         int idNextCamp = await getNextIdCampana();
-                        setState(() {
-                          estaCargando = true;
-                        });
-                        await Subir_Json_Firebase(idNextCamp, Ubicaciones,
-                            (double valorProceso) {
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (context) {
-                              return AlertDialog(
-                                title: Text('Espere unos momentos....'),
-                                content: SingleChildScrollView(
-                                  child: ListBody(
-                                    children: [
-                                      Center(
-                                        child: SpinKitFadingCube(
-                                          color: Colors.blue,
-                                          size: 50.0,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                          setState(() {
-                            proceso = valorProceso;
-                          });
-                        });
+                        await Subir_Json_Firebase(idNextCamp, Ubicaciones);
+                        
                         Ubicaciones.clear();
-                        setState(() {
-                          estaCargando = false;
-                        });
 
-                        Fluttertoast.showToast(
+                        /*Fluttertoast.showToast(
                             msg: "Finalizado",
                             toastLength: Toast.LENGTH_SHORT,
                             gravity: ToastGravity.BOTTOM,
                             timeInSecForIosWeb: 1,
                             backgroundColor: Colors.green,
                             textColor: Color.fromARGB(255, 92, 142, 203),
-                            fontSize: 16.0);
-                        Mostrar_Finalizado(
-                            context, "Se ha registrado con éxito");
+                          fontSize: 16.0);*/
+                        Navigator.of(context).pop();
+                        //closeLoadingDialog(context);
+                        showSnackbar(context, "Se ha registrado con éxito");
+                        Navigator.pop(context);
+                        //Mostrar_Finalizado(
+                        //    context, "Se ha registrado con éxito");
                       } else {
                         Mostrar_Error(context, "Ingrese todos los campos");
                       }
@@ -471,6 +415,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                   ),
                   ElevatedButton(
                     onPressed: () async {
+                      if(actualizar){
                       showDialog(
                         context: context,
                         builder: (BuildContext context) {
@@ -490,7 +435,8 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                                 child: Text('Eliminar',
                                     style: TextStyle(color: Color(0xFF1A2946))),
                                 onPressed: () async {
-                                  deleteCampaignById(id, miembroActual!.id);
+                                  CampaignProvider().loadCampaigns();
+                                  await deleteCampaignById(id, miembroActual!.id);
                                   await eliminarArchivoDeStorage(id);
                                   Mostrar_Finalizado(
                                       context, "Se ha Elminado con éxito");
@@ -500,9 +446,11 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                             ],
                           );
                         },
-                      );
+                      );}else{
+                        Navigator.of(context).pop(0);
+                      }
                     },
-                    child: Text('Eliminar'),
+                    child: Text(actualizar?'Eliminar':'Cancelar'),
                     style: ElevatedButton.styleFrom(
                       primary: Color(0xFF1A2946),
                     ),

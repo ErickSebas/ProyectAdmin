@@ -262,7 +262,7 @@ Future<File> _downloadImage(String imageUrl) async {
       nameJefe = jefeDeCarnetizador!.names;
       idJefe = jefeDeCarnetizador!.id;
     }
-
+    if(mounted)
     setState(() {});
   }
 
@@ -975,21 +975,28 @@ Future<File> _downloadImage(String imageUrl) async {
                       datebirthday != null &&
                       nameJefe != '') {
                     if (widget.isUpdate) {
+                      showLoadingDialog(context);
                       await updateUser();
                       await updateJefeCarnetizador();
                       //await updatePersonaImage();
                       imageProfile = imageLocal;
                       await uploadImage(imageProfile, idPerson);
                       await downloadBase64ImageAndSave(idPerson);
-
-                      Mostrar_Finalizado(context, "Actualización Completado");
+                      closeLoadingDialog(context);
+                      showSnackbar(context, "Actualización Completado");
+                      Navigator.pop(context);
+                      //Mostrar_Finalizado(context, "Actualización Completado");
                     } else if (password != "") {
+                      showLoadingDialog(context);
                       dateCreation = DateTime.now();
                       status = 1;
                       await registerUser();
                       idPerson = await getNextIdPerson();
                       await registerJefeCarnetizador();
-                      Mostrar_Finalizado(context, "Registro Completado");
+                      closeLoadingDialog(context);
+                      showSnackbar(context, "Registro Completado");
+                      Navigator.pop(context);
+                      //Mostrar_Finalizado(context, "Registro Completado");
                     }
                     esCarnetizador = false;
                   } else {
@@ -999,18 +1006,26 @@ Future<File> _downloadImage(String imageUrl) async {
                         selectedRole != '' &&
                         datebirthday != null) {
                       if (widget.isUpdate) {
+                        showLoadingDialog(context);
                         await updateUser();
                         //await updatePersonaImage();
                         imageProfile = imageLocal;
                         await uploadImage(imageProfile, idPerson);
                         await downloadBase64ImageAndSave(idPerson);
+                        closeLoadingDialog(context);
+                        showSnackbar(context, "Actualización Completado");
+                        Navigator.pop(context);
 
-                        Mostrar_Finalizado(context, "Actualización Completado");
+                        //Mostrar_Finalizado(context, "Actualización Completado");
                       } else if (password != "") {
+                        showLoadingDialog(context);
                         dateCreation = DateTime.now();
                         status = 1;
                         await registerUser();
-                        Mostrar_Finalizado(context, "Registro Completado");
+                        closeLoadingDialog(context);
+                        showSnackbar(context, "Registro Completado");
+                        Navigator.pop(context);
+                        //Mostrar_Finalizado(context, "Registro Completado");
                       }
 
                       esCarnetizador = false;
