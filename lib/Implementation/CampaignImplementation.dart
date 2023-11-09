@@ -8,18 +8,26 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 
-Future<List<Campaign>> fetchCampaigns() async {
-  final response =
+Future<List<Campaign>> fetchCampaigns(BuildContext context) async {
+  try{
+      final response =
       await http.get(Uri.parse('http://181.188.191.35:3000/campanas'));
-  if (response.statusCode == 200) {
-    List<dynamic> jsonResponse = json.decode(response.body);
-    return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
-  } else {
-    throw Exception('Failed to load Campana');
+    if (response.statusCode == 200) {
+      List<dynamic> jsonResponse = json.decode(response.body);
+      return jsonResponse.map((data) => Campaign.fromJson(data)).toList();
+    } else {
+      showSnackbar(context, "Error: fallo al obtener Campañas");
+      return [];
+    }
+  }catch (e){
+    showSnackbar(context, "Error: " + e.toString());
+    return [];
+    
   }
+
 }
 
-Future<int> getNextIdCampana() async {
+Future<int> getNextIdCampana(BuildContext context) async {
   final response = await http
       .get(Uri.parse('http://181.188.191.35:3000/nextidcampanas')); //////
   if (response.statusCode == 200) {
@@ -28,7 +36,8 @@ Future<int> getNextIdCampana() async {
     var res = jsonResponse[0]['AUTO_INCREMENT'];
     return res;
   } else {
-    throw Exception('Failed to load next id Camana');
+    showSnackbar(context, "Error: fallo al obtener siguiente id Campaña");
+    return 0;
   }
 }
 
@@ -55,7 +64,7 @@ Future<Widget> loadProfileImage() async {
   );
 }
 
-Future<void> registerNewCampaign(Campaign newCampaign) async {
+Future<void> registerNewCampaign(BuildContext context, Campaign newCampaign) async {
   // Convertir tu objeto Campaign a JSON.
   final campaignJson = json.encode({
 //'idCampañas': newCampaign.id,
@@ -74,12 +83,12 @@ Future<void> registerNewCampaign(Campaign newCampaign) async {
     body: campaignJson,
   );
   if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception(response);
+    showSnackbar(context, "Error: "+ response.body.toString());
   }
   campaigns.add(newCampaign);
 }
 
-Future<void> updateCampaignById(Campaign updatedCampaign) async {
+Future<void> updateCampaignById(BuildContext context, Campaign updatedCampaign) async {
   // Convertir tu objeto Campaign a JSON.
   var id = updatedCampaign.id;
   final campaignJson = json.encode({
@@ -100,7 +109,7 @@ Future<void> updateCampaignById(Campaign updatedCampaign) async {
   );
 
   if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception(response);
+    showSnackbar(context, "Error: "+ response.body.toString());
   }
   // Actualizar el objeto Campaign en tu lista local.
   int index = campaigns.indexWhere((campaign) => campaign.id == id);
@@ -109,7 +118,7 @@ Future<void> updateCampaignById(Campaign updatedCampaign) async {
   }
 }
 
-Future<void> deleteCampaignById(int id, int userId) async {
+Future<void> deleteCampaignById(BuildContext context, int id, int userId) async {
   // Convertir tu objeto Campaign a JSON.
   final campaignJson = json.encode({'idCampañas': id, 'userId': userId});
   final response = await http.put(
@@ -121,7 +130,7 @@ Future<void> deleteCampaignById(int id, int userId) async {
   );
 
   if (response.statusCode != 200 && response.statusCode != 201) {
-    throw Exception(response);
+    showSnackbar(context, "Error: "+ response.body.toString());
   }
   // Actualizar el objeto Campaign en tu lista local.
   int index = campaigns.indexWhere((campaign) => campaign.id == id);

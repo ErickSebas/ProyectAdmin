@@ -158,6 +158,9 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         final member = filtered[index];
+                        if (miembroActual == null || miembroActual!.id == member.id) {
+                          return SizedBox.shrink(); 
+                        }
                         return Container(
                           margin: EdgeInsets.all(16),
                           decoration: BoxDecoration(
@@ -183,7 +186,7 @@ class _ListMembersScreenState extends State<ListMembersScreen> {
                               width: 2.0,
                             ),
                           ),
-                          child: Padding(
+                          child:  Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

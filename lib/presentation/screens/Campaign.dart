@@ -52,7 +52,7 @@ class CampaignProvider extends ChangeNotifier {
   bool showAllCampaigns = false;
 
   CampaignProvider() {
-    //loadCampaigns();
+    loadCampaigns();
   }
 
   Future<void> loadCampaigns() async {
@@ -99,6 +99,28 @@ class _CampaignStateState extends State<CampaignPage>
     }
     
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (ModalRoute.of(context)?.isCurrent ?? false) {
+      setState(() {
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant CampaignPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (ModalRoute.of(context)?.isCurrent ?? false) {
+      // Tu widget está activo de nuevo, actualiza según sea necesario
+      setState(() {
+        // Actualiza tu UI o los datos necesarios aquí
+      });
+    }
+  }
+
+
 
 
 
@@ -311,9 +333,9 @@ Future<File> _downloadImage(String imageUrl) async {
             ListTile(
               leading: Icon(Icons.campaign),
               title: Text('Registrar Campaña'),
-              onTap: () {
+              onTap: () async {
                 Navigator.of(context).pop();
-                Navigator.push(
+                var res = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => RegisterCampaignPage(
@@ -327,6 +349,10 @@ Future<File> _downloadImage(String imageUrl) async {
                                 userId: 0),
                           )),
                 );
+                if (res != null) {
+                  setState(() {
+                  });
+                }
               },
             ),
             ListTile(
@@ -356,15 +382,15 @@ Future<File> _downloadImage(String imageUrl) async {
                       fechaActualizacion: DateTime.now());
                   int lastId = 0;
                   List<Chat> filteredList = [];
-                  await fetchChatsClient().then((value) => {
+                  await fetchChatsClient(context).then((value) => {
                         filteredList = value
                             .where((element) =>
                                 element.idPersonDestino == miembroActual!.id)
                             .toList(),
                         if (filteredList.isEmpty)
                           {
-                            registerNewChat(chatCliente).then((value) => {
-                                  getLastIdChat().then((value) => {
+                            registerNewChat(context, chatCliente).then((value) => {
+                                  getLastIdChat(context).then((value) => {
                                         lastId = value,
                                         Navigator.push(
                                           context,
@@ -522,8 +548,8 @@ Future<File> _downloadImage(String imageUrl) async {
                                         ),
                                       ],
                                     ),
-                                    onTap: () {
-                                      Navigator.push(
+                                    onTap: () async {
+                                      var res = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => RegisterCampaignPage(
@@ -531,6 +557,10 @@ Future<File> _downloadImage(String imageUrl) async {
                                           ),
                                         ),
                                       );
+                                      if (res != null) {
+                                        setState(() {
+                                        });
+                                      }
                                     },
                                   ),
                                 );
@@ -545,8 +575,8 @@ Future<File> _downloadImage(String imageUrl) async {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          var res = await Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => RegisterCampaignPage(
@@ -560,6 +590,10 @@ Future<File> _downloadImage(String imageUrl) async {
                           userId: 0),
                     )),
           );
+          if (res != null) {
+            setState(() {
+            });
+          }
         },
         child: Icon(Icons.add),
         backgroundColor: Colors.white,

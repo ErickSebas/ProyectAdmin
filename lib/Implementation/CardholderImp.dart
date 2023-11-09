@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'package:admin/services/services_firebase.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
-Future<int> getNextIdPerson() async {
+Future<int> getNextIdPerson(BuildContext context) async {
   final response = await http.get(Uri.parse(
       'http://181.188.191.35:3000/nextidperson')); //////
   if (response.statusCode == 200) {
@@ -10,6 +12,7 @@ Future<int> getNextIdPerson() async {
     var res = jsonResponse[0]['AUTO_INCREMENT'];
     return res;
   } else {
-    throw Exception('Failed to load id');
+    showSnackbar(context, "Error: "+ response.body.toString());
+    return 0;
   }
 }

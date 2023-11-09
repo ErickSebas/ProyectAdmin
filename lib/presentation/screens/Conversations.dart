@@ -63,13 +63,13 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
 
     if(isConnected.value){
       if(namesChats.isEmpty){
-      fetchNamesPersonDestino(miembroActual!.id).then((value) => {
+      fetchNamesPersonDestino(context, miembroActual!.id).then((value) => {
         if(mounted){
           setState(() {
             namesChats = value;
           })
         },
-        fetchChats().then((value) => {
+        fetchChats(context).then((value) => {
           
           if(mounted){
             setState((){
@@ -94,8 +94,8 @@ class _ChatScreenStateState extends State<ChatScreenState> with SingleTickerProv
     //namesChats = await fetchNamesPersonDestino(miembroActual!.id);
     socket.on('chat message', (data) async {
       if (!mounted) return; 
-      List<dynamic> namesChatsNew = await fetchNamesPersonDestino(miembroActual!.id);
-      fetchChats().then((value) {
+      List<dynamic> namesChatsNew = await fetchNamesPersonDestino(context, miembroActual!.id);
+      fetchChats(context).then((value) {
         if (mounted) { 
           setState(() {
             chats = value;
@@ -213,7 +213,7 @@ Future<File> _downloadImage(String imageUrl) async {
   }
 
   Future<void> eliminarChat(int index) async{
-    await deleteChat(chats[index].idChats);
+    await deleteChat(context, chats[index].idChats);
     setState(() {
       chats.removeAt(index);
     });
@@ -254,8 +254,8 @@ Future<File> _downloadImage(String imageUrl) async {
     });
     if(canUser){
       int newIdChat = 0;
-      await registerNewChat(newChat);
-      await getLastIdChat().then((value) => {
+      await registerNewChat(context,newChat);
+      await getLastIdChat(context).then((value) => {
           newIdChat = value,
           setState(() {
             chats.add(Chat(idChats: newIdChat, idPerson: miembroActual!.id, idPersonDestino: idPersonNewChat, fechaActualizacion: DateTime.now()));
@@ -264,7 +264,7 @@ Future<File> _downloadImage(String imageUrl) async {
  
       List<dynamic> namesChatsNew = [];
       //namesChats.clear();
-      await fetchNamesPersonDestino(miembroActual!.id).then((value) => {
+      await fetchNamesPersonDestino(context,miembroActual!.id).then((value) => {
         if(mounted){
           namesChatsNew = value,
           setState(() {
@@ -292,8 +292,8 @@ Future<File> _downloadImage(String imageUrl) async {
     bottom: TabBar(
       controller: _tabController,
       tabs: [
-        Tab(text: 'Administración'),
         Tab(text: 'Soporte'),
+        Tab(text: 'Administración'),
       ],
     ),
     leading: Builder(
@@ -320,10 +320,11 @@ Future<File> _downloadImage(String imageUrl) async {
       ? TabBarView(
           controller: _tabController,
           children: [
-            ChatList(eliminarChatFunction: eliminarChat, selectedImages: _selectedImages),
             if(miembroActual!.role!="Super Admin")
             EstadoList(eliminarChatFunction: eliminarChat, selectedImages: _selectedImages,)
             ,
+            ChatList(eliminarChatFunction: eliminarChat, selectedImages: _selectedImages),
+
           ],
         )
       : Center(
@@ -335,7 +336,7 @@ Future<File> _downloadImage(String imageUrl) async {
         color: Color(0xFF5C8ECB),
         
         child: Center(child: Text('Error: Connection failed', style: TextStyle(color: Colors.white),))),
-  floatingActionButton: _tabController?.index==0?  FloatingActionButton(
+  floatingActionButton: _tabController?.index==1?  FloatingActionButton(
      onPressed: isConnected.value? () {
       showDialog(
         context: context,
@@ -382,6 +383,7 @@ TextButton(
                   Navigator.of(context).pop();
                   await addNewChat();
                   emailController.clear();
+                  loadAllImages();
                 },
               ),
               ],),
@@ -428,10 +430,11 @@ class ChatList extends StatelessWidget {
           child: InkWell(
             onTap: () async {
               currentChatId =  chats[index].idChats;
+              File imageFile = await getImageFileFromAssets('assets/usuario.png');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"], idPersonDestino: 0, imageChat: 
-                selectedImages[chats[index].idChats]==null?File('assets/usuario.png'):selectedImages[chats[index].idChats])),//////////////
+                selectedImages[chats[index].idChats]==null?imageFile:selectedImages[chats[index].idChats])),//////////////
               );
             },
             onLongPress: () async {
@@ -526,12 +529,13 @@ class EstadoList extends StatelessWidget {
           margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           elevation: 5,
           child: InkWell(
-            onTap: () {
+            onTap: () async {
               print('idPersonDestino:'+chats[index].idPersonDestino.toString());
+              File imageFile = await getImageFileFromAssets('assets/usuario.png');
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => ChatPage(idChat: chats[index].idChats, nombreChat: namesChats[index]["Nombres"],idPersonDestino: chats[index].idPersonDestino,imageChat: 
-                selectedImages[chats[index].idChats]==null?File('assets/usuario.png'):selectedImages[chats[index].idChats])),//////////////
+                selectedImages[chats[index].idChats]==null?imageFile:selectedImages[chats[index].idChats])),//////////////
               );
             },
             onLongPress: () async {

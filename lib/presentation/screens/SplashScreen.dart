@@ -51,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
 
   Future<void> Navegar_Pantalla_Main() async {
-    campaigns = await fetchCampaigns();
+    campaigns = await fetchCampaigns(context);
     //await Future.delayed(const Duration(seconds: 2)); // Espera 2 segundos
     // ignore: use_build_context_synchronously
     Navigator.pushReplacement(

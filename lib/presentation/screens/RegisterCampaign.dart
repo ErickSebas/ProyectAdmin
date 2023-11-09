@@ -348,8 +348,10 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           _formKey.currentState!.validate() &&
                           (dateStart!.isBefore(dateEnd!) ||
                               dateStart!.isAtSameMomentAs(dateEnd!))) {
-                        showLoadingDialog(context);
-                        Campaign updatedCampaign = Campaign(
+
+                        
+                        await showLoadingDialog(context, () async {
+                          Campaign updatedCampaign = Campaign(
                             id: id,
                             nombre: nombre,
                             descripcion: descripcion,
@@ -357,16 +359,17 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                             dateStart: dateStart!,
                             dateEnd: dateEnd!,
                             userId: miembroActual!.id);
-                        await updateCampaignById(updatedCampaign);
+                          await updateCampaignById(context, updatedCampaign); // Actualiza la campaña
 
-                        if (kml != '') {
-                          await Subir_Json_Firebase(id, Ubicaciones);
-                        
-                          Ubicaciones.clear();
-                        }
-                        closeLoadingDialog(context);
+                          if (kml != '') {
+                            await Subir_Json_Firebase(id, Ubicaciones); // Sube el archivo KML
+                            Ubicaciones.clear();
+                          }
+
+
+                        });
                         showSnackbar(context, "Se ha actualizado con éxito");
-                        Navigator.pop(context);
+                        Navigator.pop(context, 1);
                         //Mostrar_Finalizado(
                            // context, "Se ha actualizado con éxito");
                       } else if (_formKey.currentState!.validate() &&
@@ -375,35 +378,23 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                           (dateStart!.isBefore(dateEnd!) ||
                               dateStart!.isAtSameMomentAs(dateEnd!))) {
                         //Registrar
-                        showLoadingDialog(context);
-                        Campaign newCampaign = Campaign(
-                            id: 0,
-                            nombre: nombre,
-                            descripcion: descripcion,
-                            categoria: categoria!,
-                            dateStart: dateStart!,
-                            dateEnd: dateEnd!,
-                            userId: miembroActual!.id);
-                        await registerNewCampaign(newCampaign);
-                        int idNextCamp = await getNextIdCampana();
-                        await Subir_Json_Firebase(idNextCamp, Ubicaciones);
-                        
-                        Ubicaciones.clear();
-
-                        /*Fluttertoast.showToast(
-                            msg: "Finalizado",
-                            toastLength: Toast.LENGTH_SHORT,
-                            gravity: ToastGravity.BOTTOM,
-                            timeInSecForIosWeb: 1,
-                            backgroundColor: Colors.green,
-                            textColor: Color.fromARGB(255, 92, 142, 203),
-                          fontSize: 16.0);*/
-                        Navigator.of(context).pop();
-                        //closeLoadingDialog(context);
+                        await showLoadingDialog(context, () async{
+                          Campaign newCampaign = Campaign(
+                              id: 0,
+                              nombre: nombre,
+                              descripcion: descripcion,
+                              categoria: categoria!,
+                              dateStart: dateStart!,
+                              dateEnd: dateEnd!,
+                              userId: miembroActual!.id);
+                          await registerNewCampaign(context, newCampaign);
+                          int idNextCamp = await getNextIdCampana(context);
+                          await Subir_Json_Firebase(idNextCamp, Ubicaciones);
+                          Ubicaciones.clear();
+                        });
                         showSnackbar(context, "Se ha registrado con éxito");
-                        Navigator.pop(context);
-                        //Mostrar_Finalizado(
-                        //    context, "Se ha registrado con éxito");
+                        Navigator.pop(context, 1);
+
                       } else {
                         Mostrar_Error(context, "Ingrese todos los campos");
                       }
@@ -436,7 +427,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                                     style: TextStyle(color: Color(0xFF1A2946))),
                                 onPressed: () async {
                                   CampaignProvider().loadCampaigns();
-                                  await deleteCampaignById(id, miembroActual!.id);
+                                  await deleteCampaignById(context, id, miembroActual!.id);
                                   await eliminarArchivoDeStorage(id);
                                   Mostrar_Finalizado(
                                       context, "Se ha Elminado con éxito");

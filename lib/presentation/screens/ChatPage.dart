@@ -71,7 +71,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     currentChatId = widget.idChat;
 
-    fetchMessage(widget.idChat).then((value) => {
+    fetchMessage(context, widget.idChat).then((value) => {
       if(mounted){
         setState((){
           messages = value;
@@ -228,7 +228,7 @@ class _ChatPageState extends State<ChatPage> {
                   icon: Icon(Icons.send, color: Colors.white),
                   onPressed: () async {
                     if (_controller.text.isNotEmpty) {
-                      await sendMessage(miembroActual!.id, _controller.text, widget.idChat);
+                      await sendMessage(context, miembroActual!.id, _controller.text, widget.idChat);
                       //socket.emit('chat message', _controller.text);
                       _controller.clear();
                     }

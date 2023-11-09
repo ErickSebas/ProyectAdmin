@@ -4,6 +4,7 @@ import 'package:admin/Implementation/ProfileImp.dart';
 import 'package:admin/Models/Cardholder.dart';
 import 'package:admin/presentation/screens/List_members.dart';
 import 'package:admin/services/services_firebase.dart';
+import 'package:crypto/crypto.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -156,7 +157,7 @@ Future<File> _downloadImage(String imageUrl) async {
     Future<bool> uploadImage(File? image, int userId) async {
     try {
       if(widget.isUpdate==false){
-        userId = await getNextIdPerson();
+        userId = await getNextIdPerson(context);
       }
       
       final firebase_storage.Reference storageRef =
@@ -274,9 +275,12 @@ Future<File> _downloadImage(String imageUrl) async {
       idRolSeleccionada = 2;
     } else if (selectedRole == 'Carnetizador') {
       idRolSeleccionada = 3;
-    } else {
-      // Puedes manejar cualquier otro caso aquí, si es necesario.
+    } else if (selectedRole == 'Cliente'){
+      idRolSeleccionada=4;
+    }else{
+      idRolSeleccionada=5;
     }
+    String md5Password = md5.convert(utf8.encode(password)).toString();
     final response = await http.post(
       url,
       body: jsonEncode({
@@ -290,7 +294,7 @@ Future<File> _downloadImage(String imageUrl) async {
         'Latitud': latitude,
         'Longitud': longitude,
         'Correo': email,
-        'Password': password,
+        'Password': md5Password,
         'Status': status,
       }),
       headers: {'Content-Type': 'application/json'},
@@ -585,16 +589,25 @@ Future<File> _downloadImage(String imageUrl) async {
     }
   }
 
-    Future<void> _getImageFromGallery() async {
-    final pickedImage =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+Future<void> _getImageFromGallery() async {
+  final picker = ImagePicker();
+  final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+  if (pickedImage != null) {
+    File imageFile = File(pickedImage.path);
+
+    img.Image? image = img.decodeImage(imageFile.readAsBytesSync());
+
+    if (image != null) {
+      image = img.bakeOrientation(image);
+      await imageFile.writeAsBytes(img.encodeJpg(image));
+    }
 
     setState(() {
-      if (pickedImage != null) {
-        imageLocal = File(pickedImage.path);
-      }
+      imageLocal = imageFile;
     });
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -634,7 +647,11 @@ Future<File> _downloadImage(String imageUrl) async {
                     children: <Widget>[
                       imageLocal!=null ?InkWell(
                         onTap: () {
-                          _getImageFromGallery();
+                          showPicker(context, (File file) {
+                            setState(() {
+                              imageLocal = file;
+                            });
+                          });
                         },
                         child: CircleAvatar(
                           backgroundImage: FileImage(imageLocal!),
@@ -643,7 +660,11 @@ Future<File> _downloadImage(String imageUrl) async {
                         ),
                       ): InkWell(
                         onTap: () {
-                          _getImageFromGallery();
+                          showPicker(context, (File file) {
+                            setState(() {
+                              imageLocal = file;
+                            });
+                          });
                         },
                         child: Stack(
                           children: [
@@ -975,25 +996,33 @@ Future<File> _downloadImage(String imageUrl) async {
                       datebirthday != null &&
                       nameJefe != '') {
                     if (widget.isUpdate) {
-                      showLoadingDialog(context);
-                      await updateUser();
-                      await updateJefeCarnetizador();
-                      //await updatePersonaImage();
-                      imageProfile = imageLocal;
-                      await uploadImage(imageProfile, idPerson);
-                      await downloadBase64ImageAndSave(idPerson);
-                      closeLoadingDialog(context);
+                      await showLoadingDialog(context, () async{
+                        await updateUser();
+                        await updateJefeCarnetizador();
+                        //await updatePersonaImage();
+                        if(idPerson==miembroActual!.id){
+                        imageProfile = imageLocal;}
+                        await uploadImage(imageLocal, idPerson);
+                        //await downloadBase64ImageAndSave(idPerson);
+                        //closeLoadingDialog(context);
+
+                      });
                       showSnackbar(context, "Actualización Completado");
                       Navigator.pop(context);
                       //Mostrar_Finalizado(context, "Actualización Completado");
                     } else if (password != "") {
-                      showLoadingDialog(context);
-                      dateCreation = DateTime.now();
-                      status = 1;
-                      await registerUser();
-                      idPerson = await getNextIdPerson();
-                      await registerJefeCarnetizador();
-                      closeLoadingDialog(context);
+                      await showLoadingDialog(context, () async{
+                        dateCreation = DateTime.now();
+                        status = 1;
+                        await registerUser();
+                        idPerson = await getNextIdPerson(context);
+                        await registerJefeCarnetizador();
+                        if(idPerson==miembroActual!.id){
+                        imageProfile = imageLocal;}
+                        await uploadImage(imageLocal, idPerson);
+                        //closeLoadingDialog(context);
+
+                      });
                       showSnackbar(context, "Registro Completado");
                       Navigator.pop(context);
                       //Mostrar_Finalizado(context, "Registro Completado");
@@ -1006,23 +1035,31 @@ Future<File> _downloadImage(String imageUrl) async {
                         selectedRole != '' &&
                         datebirthday != null) {
                       if (widget.isUpdate) {
-                        showLoadingDialog(context);
-                        await updateUser();
-                        //await updatePersonaImage();
-                        imageProfile = imageLocal;
-                        await uploadImage(imageProfile, idPerson);
-                        await downloadBase64ImageAndSave(idPerson);
-                        closeLoadingDialog(context);
+                        await showLoadingDialog(context, () async{
+                          await updateUser();
+                          //await updatePersonaImage();
+                          if(idPerson==miembroActual!.id){
+                          imageProfile = imageLocal;}
+                          await uploadImage(imageLocal, idPerson);
+                          //await downloadBase64ImageAndSave(idPerson);
+                          //closeLoadingDialog(context);
+                          
+                        });
                         showSnackbar(context, "Actualización Completado");
                         Navigator.pop(context);
 
                         //Mostrar_Finalizado(context, "Actualización Completado");
                       } else if (password != "") {
-                        showLoadingDialog(context);
-                        dateCreation = DateTime.now();
-                        status = 1;
-                        await registerUser();
-                        closeLoadingDialog(context);
+                        await showLoadingDialog(context, () async{
+                          dateCreation = DateTime.now();
+                          status = 1;
+                          await registerUser();
+                          if(idPerson==miembroActual!.id){
+                          imageProfile = imageLocal;}
+                          await uploadImage(imageLocal, idPerson);
+                          //closeLoadingDialog(context);
+
+                        });
                         showSnackbar(context, "Registro Completado");
                         Navigator.pop(context);
                         //Mostrar_Finalizado(context, "Registro Completado");

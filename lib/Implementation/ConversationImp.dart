@@ -2,11 +2,12 @@ import 'dart:convert';
 
 import 'package:admin/Models/ConversationModel.dart';
 import 'package:admin/services/services_firebase.dart';
+import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 
 
 
-Future<List<Chat>> fetchChats() async {
+Future<List<Chat>> fetchChats(BuildContext context) async {
   final response = await http.get(Uri.parse(
       'http://181.188.191.35:3000/getchats/' +
           miembroActual!.id.toString()));
@@ -14,12 +15,13 @@ Future<List<Chat>> fetchChats() async {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Chat.fromJson(data)).toList();
   } else {
-    throw Exception('Failed to load chats');
+      showSnackbar(context, "Error: " + response.body.toString());
+      return[];
   }
 }
 
 
-Future<List<Chat>> fetchChatsClient() async {
+Future<List<Chat>> fetchChatsClient(BuildContext context) async {
   final response = await http.get(Uri.parse(
       'http://181.188.191.35:3000/getchatcliente/' +
           miembroActual!.id.toString()));
@@ -27,12 +29,13 @@ Future<List<Chat>> fetchChatsClient() async {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse.map((data) => Chat.fromJson(data)).toList();
   } else {
-    throw Exception('Failed to load chats');
+    showSnackbar(context, "Error: " + response.body.toString());
+    return[];
   }
 }
 
 
-Future<List<dynamic>> fetchNamesPersonDestino(int idPersonDestino) async {
+Future<List<dynamic>> fetchNamesPersonDestino(BuildContext context, int idPersonDestino) async {
   final response = await http.get(Uri.parse(
       'http://181.188.191.35:3000/getnamespersondestino/' +
           idPersonDestino.toString()));
@@ -40,6 +43,7 @@ Future<List<dynamic>> fetchNamesPersonDestino(int idPersonDestino) async {
     List<dynamic> jsonResponse = json.decode(response.body);
     return jsonResponse;
   } else {
-    throw Exception('Failed to load chats');
+    showSnackbar(context, "Error: " + response.body.toString());
+    return[];
   }
 }
