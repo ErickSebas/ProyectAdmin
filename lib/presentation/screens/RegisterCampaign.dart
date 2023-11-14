@@ -111,7 +111,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
       backgroundColor: Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 92, 142, 203),
-        title: Text(actualizar ? 'Actualizar Campaña' : 'Registrar Campaña',
+        title: Text(actualizar ? 'Actualizar Actividad' : 'Registrar Actividad',
             style: TextStyle(color: Color.fromARGB(255, 255, 255, 255))),
         centerTitle: true,
         leading: Builder(
@@ -150,7 +150,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                       style:
                           TextStyle(color: Colors.black),
                       decoration: InputDecoration(
-                        labelText: 'Nombre de la campaña',
+                        labelText: 'Nombre de la Actividad',
                         labelStyle:
                             TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
                         counterText: "${nombre.length}/50",
@@ -236,13 +236,13 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                   SizedBox(width: 10),
                   Expanded(
                     child: DropdownButton<String>(
-                      hint: Text('Selecciona una categoría',
+                      hint: Text('Selecciona un Tipo de Actividad',
                           style: TextStyle(color: Color.fromARGB(255, 92, 142, 203)),),
                       value: categoria,
                       dropdownColor: Colors.grey[850],
                       style:
                           TextStyle(color: Color.fromARGB(255, 92, 142, 203)),
-                      items: <String>['Vacuna', 'Carnetizacion']
+                      items: <String>['Vacuna', 'Carnetizacion', 'Control de Foco', 'Vacunación Continua', 'Rastrillaje']//MAS opciones?
                           .map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,

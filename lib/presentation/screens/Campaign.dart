@@ -87,6 +87,9 @@ class CampaignPage extends StatefulWidget {
 class _CampaignStateState extends State<CampaignPage>
     with SingleTickerProviderStateMixin {
   bool isloadingProfile = true;
+  String selectedCategory = 'Vacuna'; 
+  List<String> categories = ['Vacuna', 'Carnetizacion', 'Control de Foco', 'Vacunación Continua', 'Rastrillaje']; 
+
   
   final now = DateTime.now();
   @override
@@ -214,7 +217,7 @@ Future<File> _downloadImage(String imageUrl) async {
       backgroundColor: Color.fromARGB(255, 255, 255, 255),
       appBar: AppBar(
         backgroundColor: Color.fromARGB(255, 92, 142, 203),
-        title: Text('Campañas', style: TextStyle(color: Colors.white)),
+        title: Text('Actividades', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
@@ -332,7 +335,7 @@ Future<File> _downloadImage(String imageUrl) async {
                 )),
             ListTile(
               leading: Icon(Icons.campaign),
-              title: Text('Registrar Campaña'),
+              title: Text('Registrar Actividad'),
               onTap: () async {
                 Navigator.of(context).pop();
                 var res = await Navigator.push(
@@ -482,10 +485,54 @@ Future<File> _downloadImage(String imageUrl) async {
               Column(
                 children: [
                   searchField,
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        border: Border.all(
+                          color: Color.fromARGB(255, 92, 142, 203),
+                          width: 2.0,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                isExpanded: true, 
+                                value: selectedCategory,
+                                icon: const Icon(Icons.arrow_drop_down),
+                                iconSize: 24,
+                                elevation: 16,
+                                style: const TextStyle(color: Color(0xFF4D6596)),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    selectedCategory = newValue!;
+                                  });
+                                },
+                                items: categories.map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                   Expanded(
                     child: ListView.builder(
                       itemCount: provider.campaigns1.length,
                       itemBuilder: (context, index) {
+                          if(provider.campaigns1[index].categoria!=selectedCategory){
+                            return SizedBox.shrink();
+                          }
                           return Card(
                                   elevation: 4.0,
                                   shape: RoundedRectangleBorder(
