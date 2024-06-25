@@ -1,5 +1,7 @@
 import 'package:admin/Implementation/CampaignImplementation.dart';
 import 'package:admin/Models/CampaignModel.dart';
+import 'package:csv/csv.dart';
+import 'package:excel/excel.dart' as exc;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -56,54 +58,141 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
     dateEnd = widget.initialData.dateEnd;
   }
 
+  double? dmsToDecimal(String dms) {
+    if (dms == null || dms.isEmpty) {
+      return null;
+    }
+
+    try {
+      // Elimina las comillas innecesarias
+      dms = dms.replaceAll("'", "").replaceAll("''", "").replaceAll("º", "").replaceAll(",", ".");
+
+      // Divide el texto por los símbolos de grados, minutos y segundos
+      List<String> parts = dms.split(RegExp(r'[^\d\.\-]+'));
+
+      if (parts.isEmpty || parts[0].isEmpty) {
+        return null;
+      }
+
+      double degrees = double.parse(parts[0]);
+      double minutes = parts.length > 1 && parts[1].isNotEmpty ? double.parse(parts[1]) : 0;
+      double seconds = parts.length > 2 && parts[2].isNotEmpty ? double.parse(parts[2]) : 0;
+
+      double decimal = degrees + (minutes / 60) + (seconds / 3600);
+      return decimal;
+    } catch (e) {
+      // Si ocurre un error, retorna null
+      return null;
+    }
+  }
+
+
   void Importar_Archivo() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['kml'],
+      allowedExtensions: ['kml', 'csv', 'xlsx'],
     );
 
     if (result != null) {
       var path = result.files.single.path;
-      kml = result.files.single.name;
+      var fileName = result.files.single.name;
+      String kml = result.files.single.name;
       if (path != null && File(path).existsSync()) {
         var fileBytes = File(path).readAsBytesSync();
         if (path.endsWith('.kml')) {
-          var xmlDocument =
-              XmlDocument.parse(const Utf8Decoder().convert(fileBytes));
-          var placemarks = xmlDocument.findAllElements('Placemark');
-          print(placemarks);
-          for (var placemark in placemarks) {
-            var lookAtElement =
-                placemark.childElements.last.findElements('coordinates');
-
-            var nameElement = placemark.findElements('name');
-            String name = nameElement.isNotEmpty ? nameElement.first.text : '';
-            String longitude;
-            String latitude;
-            for (var coordinatesElement in lookAtElement) {
-              // Obtiene el contenido de texto de la etiqueta <coordinates>
-              String coordinatesText = coordinatesElement.text;
-
-              // Divide el texto por las comas
-              List<String> splitCoordinates = coordinatesText.split(',');
-              name = name.replaceAll('Ã³', 'ó');
-              name = name.replaceAll('Vacunacion', 'Vacunación');
-              name = name.replaceAll('vacunacion', 'Vacunación');
-              name = name.replaceAll('VACUNACION', 'VACUNACIÓN');
-
-              if (splitCoordinates.length >= 2) {
-                longitude = splitCoordinates[0];
-                latitude = splitCoordinates[1];
-                Ubicaciones.add(EUbication(
-                    name: name, latitude: latitude, longitude: longitude));
-              }
-            }
-          }
+          _importarKml(fileBytes);
+        } else if (path.endsWith('.csv')) {
+          _importarCsv(fileBytes);
+        } else if (path.endsWith('.xlsx')) {
+          _importarExcel(fileBytes);
         }
       }
       setState(() {});
     }
   }
+
+  void _importarKml(Uint8List fileBytes) {
+    var xmlDocument = XmlDocument.parse(const Utf8Decoder().convert(fileBytes));
+    var placemarks = xmlDocument.findAllElements('Placemark');
+    for (var placemark in placemarks) {
+      var lookAtElement = placemark.childElements.last.findElements('coordinates');
+      var nameElement = placemark.findElements('name');
+      String name = nameElement.isNotEmpty ? nameElement.first.text : '';
+      String longitude;
+      String latitude;
+      for (var coordinatesElement in lookAtElement) {
+        // Obtiene el contenido de texto de la etiqueta <coordinates>
+        String coordinatesText = coordinatesElement.text;
+
+        // Divide el texto por las comas
+        List<String> splitCoordinates = coordinatesText.split(',');
+        name = name.replaceAll('Ã³', 'ó');
+        name = name.replaceAll('Vacunacion', 'Vacunación');
+        name = name.replaceAll('vacunacion', 'Vacunación');
+        name = name.replaceAll('VACUNACION', 'VACUNACIÓN');
+
+        if (splitCoordinates.length >= 2) {
+          longitude = splitCoordinates[0];
+          latitude = splitCoordinates[1];
+          if (longitude != null && latitude != null) {
+            Ubicaciones.add(EUbication(
+                name: name,
+                latitude: latitude,
+                longitude: longitude));
+          }
+        }
+      }
+    }
+  }
+
+  void _importarCsv(Uint8List fileBytes) {
+    // Convierte los bytes a una cadena de texto
+    String csvString = const Utf8Decoder().convert(fileBytes);
+    List<List<dynamic>> rowsAsListOfValues = const CsvToListConverter().convert(csvString);
+
+    for (var row in rowsAsListOfValues) {
+      if (row.length > 7) {  // Asegurarse de que la fila tenga suficientes columnas
+        String name = row[2]; // Columna C
+        String latitude = row[6].toString(); // Columna G
+        String longitude = row[7].toString(); // Columna H
+
+        // Convertir coordenadas a decimal
+        double? latitudeDecimal = dmsToDecimal(latitude);
+        double? longitudeDecimal = dmsToDecimal(longitude);
+
+        if (latitudeDecimal != null && longitudeDecimal != null) {
+          Ubicaciones.add(EUbication(
+              name: name, latitude: latitudeDecimal.toString(), longitude: longitudeDecimal.toString()));
+        }
+      }
+    }
+  }
+
+  void _importarExcel(Uint8List fileBytes) {
+    var excel = exc.Excel.decodeBytes(fileBytes);
+    for (var table in excel.tables.keys) {
+      var sheet = excel.tables[table];
+      if (sheet != null) {
+        for (var row in sheet.rows) {
+          if (row.length > 7) {  // Asegurarse de que la fila tenga suficientes columnas
+            String name = row[2]?.value.toString() ?? ''; // Columna C
+            String latitude = row[6]?.value.toString() ?? ''; // Columna G
+            String longitude = row[7]?.value.toString() ?? ''; // Columna H
+
+            // Convertir coordenadas a decimal
+            double? latitudeDecimal = dmsToDecimal(latitude);
+            double? longitudeDecimal = dmsToDecimal(longitude);
+
+            if (latitudeDecimal != null && longitudeDecimal != null) {
+              Ubicaciones.add(EUbication(
+                  name: name, latitude: latitudeDecimal.toString(), longitude: longitudeDecimal.toString()));
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -323,21 +412,23 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
                     ),
                     SizedBox(width: 8), // Espacio entre el icono y el texto
                     Text(
-                      'Importar KML',
+                      'Importar Archivo',
                       style:
                           TextStyle(color: Colors.black),
                     ),
                   ],
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(kml,
-                      style:
-                          TextStyle(color: Color.fromARGB(255, 92, 142, 203))),
-                ],
-              ),
+              Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(kml, style: TextStyle(color: Color.fromARGB(255, 92, 142, 203))),
+                  ],
+                ),
+              ),),
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,

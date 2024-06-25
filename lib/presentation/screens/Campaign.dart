@@ -183,6 +183,8 @@ Future<File> _downloadImage(String imageUrl) async {
   }
 }
 
+
+
   @override
   Widget build(BuildContext context) {
     final searchField = Padding(
