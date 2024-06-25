@@ -96,7 +96,7 @@ class _RegisterCampaignPageState extends State<RegisterCampaignPage> {
     if (result != null) {
       var path = result.files.single.path;
       var fileName = result.files.single.name;
-      String kml = result.files.single.name;
+      kml = result.files.single.name;
       if (path != null && File(path).existsSync()) {
         var fileBytes = File(path).readAsBytesSync();
         if (path.endsWith('.kml')) {

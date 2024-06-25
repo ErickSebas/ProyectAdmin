@@ -562,7 +562,7 @@ Future<File> _downloadImage(String imageUrl) async {
                                           padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                                           decoration: BoxDecoration(
                                             color: getStatusColor(
-                                              provider.campaigns1[index].dateStart,
+                                              provider.campaigns1[index].dateStart.add(Duration(days: -1)),
                                               provider.campaigns1[index].dateEnd,
                                             ),
                                             borderRadius: BorderRadius.circular(5.0),
@@ -570,7 +570,7 @@ Future<File> _downloadImage(String imageUrl) async {
                                           child: Text(
                                             now.isAfter(provider.campaigns1[index].dateEnd)
                                                 ? 'Finalizado'
-                                                : now.isBefore(provider.campaigns1[index].dateStart)
+                                                : now.isBefore(provider.campaigns1[index].dateStart.add(Duration(days: -1)))
                                                     ? 'En espera'
                                                     : 'En curso',
                                             style: TextStyle(
